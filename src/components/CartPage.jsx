@@ -144,7 +144,7 @@ const CartPage = ({ onBackToHome, onShowLogin, onProceedCheckout }) => {
                         {/* Price and Quantity */}
                         <div className="flex items-center justify-between mt-4">
                           <span className="text-lg font-bold text-amber-900">
-                            P{item.price.toFixed(2)}
+                            ₱{Math.round(item.price)}
                           </span>
 
                           {/* Quantity Selector */}
@@ -190,20 +190,20 @@ const CartPage = ({ onBackToHome, onShowLogin, onProceedCheckout }) => {
                   {/* Subtotal */}
                   <div className="flex justify-between">
                     <span className="text-amber-700">Sub total</span>
-                    <span className="font-semibold text-amber-900">P{subtotal.toFixed(2)}</span>
+                    <span className="font-semibold text-amber-900">₱{Math.round(subtotal)}</span>
                   </div>
 
                   {/* Shipping Fee */}
                   <div className="flex justify-between">
                     <span className="text-amber-700">Shiping fee</span>
-                    <span className="font-semibold text-amber-900">P{shippingFee.toFixed(2)}</span>
+                    <span className="font-semibold text-amber-900">₱{Math.round(shippingFee)}</span>
                   </div>
 
                   {/* Divider */}
                   <div className="border-t border-amber-200 pt-4">
                     <div className="flex justify-between">
                       <span className="text-lg font-bold text-amber-900">Total</span>
-                      <span className="text-lg font-bold text-amber-900">P{total.toFixed(2)}</span>
+                      <span className="text-lg font-bold text-amber-900">₱{Math.round(total)}</span>
                     </div>
                   </div>
                 </div>

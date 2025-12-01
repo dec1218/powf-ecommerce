@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const Login = ({ onSwitchToSignup, onClose }) => {
   const [email, setEmail] = useState('')
@@ -6,23 +8,32 @@ const Login = ({ onSwitchToSignup, onClose }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const navigate = useNavigate()
+  const { login } = useAuth()
+
 
   const handleLogin = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    // Simple validation for demo purposes
-    if (email === 'demo@example.com' && password === 'password') {
+    try {
+      if (!email || !password) {
+        setError('Please fill in all fields')
+        setLoading(false)
+        return
+      }
+      const user = await login({ email, password })
       setIsLoggedIn(true)
       setError('')
-    } else if (email === '' || password === '') {
-      setError('Please fill in all fields')
-    } else {
-      setError('Invalid credentials. Try demo@example.com / password')
+      // redirect by role
+      if (user?.role === 'admin') {
+        navigate('/admin', { replace: true })
+      } else {
+        navigate('/home', { replace: true })
+      }
+    } catch (err) {
+      setError(err.message || 'Login failed')
     }
     
     setLoading(false)
@@ -174,7 +185,7 @@ const Login = ({ onSwitchToSignup, onClose }) => {
             <span className="text-sm text-amber-800">
               Don't have an account?{' '}
               <button
-                onClick={onSwitchToSignup}
+                onClick={() => (onSwitchToSignup ? onSwitchToSignup() : navigate('/signup'))}
                 className="text-amber-900 font-medium hover:text-amber-950 underline transition-colors duration-200"
               >
                 Sign up

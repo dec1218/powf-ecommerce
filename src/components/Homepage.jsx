@@ -149,7 +149,7 @@ const Homepage = () => {
 
   return (
     <div className="min-h-screen bg-amber-50">
-      <Header onShowLogin={handleShowProfile} onShowCart={handleShowCart} />
+  <Header onShowLogin={handleShowLogin} onShowCart={handleShowCart} />
       <main>
         <Hero />
         <Categories onCategoryClick={handleCategoryClick} />

@@ -1,7 +1,10 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import Header from './Header'
 
 const ProfilePage = ({ onBackToHome, onShowLogin, onShowOrderHistory }) => {
   const [activeSection, setActiveSection] = useState('profile')
+  const navigate = useNavigate()
   const [profileData, setProfileData] = useState({
     username: '',
     name: '',
@@ -54,40 +57,8 @@ const ProfilePage = ({ onBackToHome, onShowLogin, onShowOrderHistory }) => {
 
   return (
     <div className="min-h-screen bg-amber-50">
-      {/* Header */}
-      <header className="bg-amber-50 px-4 py-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
-                <svg 
-                  className="w-5 h-5 text-white" 
-                  fill="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 6.5V7.5C15 8.3 14.3 9 13.5 9H10.5C9.7 9 9 8.3 9 7.5V6.5L3 7V9H21ZM4 10H20V20C20 21.1 19.1 22 18 22H6C4.9 22 4 21.1 4 20V10Z"/>
-                </svg>
-              </div>
-              <h1 className="text-xl sm:text-2xl font-bold text-amber-900">
-                Pawfect Shop
-              </h1>
-            </div>
-
-            {/* Back Button */}
-            <button
-              onClick={onBackToHome}
-              className="flex items-center text-amber-700 hover:text-amber-900 transition-colors duration-200"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back to Home
-            </button>
-          </div>
-        </div>
-      </header>
-
+      <Header onShowLogin={onShowLogin} />
+      
       {/* Main Content */}
       <main className="px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-7xl mx-auto">
@@ -113,8 +84,8 @@ const ProfilePage = ({ onBackToHome, onShowLogin, onShowOrderHistory }) => {
                     <div key={item.id}>
                       <button
                         onClick={() => {
-                          if (item.id === 'Pruchases' && onShowOrderHistory) {
-                            onShowOrderHistory()
+                          if (item.id === 'Pruchases') {
+                            navigate('/order-history')
                           } else {
                             setActiveSection(item.id)
                           }

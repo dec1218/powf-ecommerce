@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Header from './Header'
 
 const CheckoutPage = ({ onBackToHome, onShowLogin }) => {
   const [formData, setFormData] = useState({
@@ -54,38 +55,25 @@ const CheckoutPage = ({ onBackToHome, onShowLogin }) => {
 
   return (
     <div className="min-h-screen bg-amber-50">
+      <Header onShowLogin={onShowLogin} />
 
       <main className="px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-7xl mx-auto">
-          {/* Header Section */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center space-x-3">
-              <span className="text-sm text-amber-700 font-medium">Payment Process</span>
-              <button
-                onClick={onBackToHome}
-                className="text-amber-700 hover:text-amber-900 transition-colors duration-200"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-            </div>
+          {/* Back Button */}
+          <button
+            onClick={onBackToHome}
+            className="flex items-center text-amber-700 hover:text-amber-900 mb-6 transition-colors duration-200"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
+          </button>
 
-            <h1 className="text-2xl sm:text-3xl font-bold text-amber-900">Check Out</h1>
-
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
-                <svg 
-                  className="w-5 h-5 text-white" 
-                  fill="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 6.5V7.5C15 8.3 14.3 9 13.5 9H10.5C9.7 9 9 8.3 9 7.5V6.5L3 7V9H21ZM4 10H20V20C20 21.1 19.1 22 18 22H6C4.9 22 4 21.1 4 20V10Z"/>
-                </svg>
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-amber-900">fect Shop</h2>
-            </div>
-          </div>
+          {/* Page Title */}
+          <h1 className="text-2xl sm:text-3xl font-bold text-amber-900 mb-8 text-center">
+            Check Out
+          </h1>
 
           {/* Checkout Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -189,7 +177,7 @@ const CheckoutPage = ({ onBackToHome, onShowLogin }) => {
                         
                         <div className="flex items-center justify-between mt-2">
                           <span className="text-amber-700 font-semibold text-sm sm:text-base">
-                            P{item.price.toFixed(2)}
+                            ₱{Math.round(item.price)}
                           </span>
 
                           {/* Quantity Display */}
@@ -210,18 +198,18 @@ const CheckoutPage = ({ onBackToHome, onShowLogin }) => {
                 <div className="space-y-3 pt-4 border-t border-amber-200">
                   <div className="flex justify-between">
                     <span className="text-amber-700">Sub total</span>
-                    <span className="font-semibold text-amber-900">P{subtotal.toFixed(2)}</span>
+                    <span className="font-semibold text-amber-900">₱{Math.round(subtotal)}</span>
                   </div>
 
                   <div className="flex justify-between">
                     <span className="text-amber-700">Shipping fee</span>
-                    <span className="font-semibold text-amber-900">P{shippingFee.toFixed(2)}</span>
+                    <span className="font-semibold text-amber-900">₱{Math.round(shippingFee)}</span>
                   </div>
 
                   <div className="border-t border-amber-200 pt-3 mt-3">
                     <div className="flex justify-between">
                       <span className="text-lg font-bold text-amber-900">Total</span>
-                      <span className="text-lg font-bold text-amber-900">P{total.toFixed(2)}</span>
+                      <span className="text-lg font-bold text-amber-900">₱{Math.round(total)}</span>
                     </div>
                   </div>
                 </div>

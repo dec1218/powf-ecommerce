@@ -4,7 +4,7 @@ const Products = ({ onProductClick }) => {
       id: 1,
       name: 'Purina Pro Plan',
       description: 'Pro Plan Adult Sensitive Skin and Stomach Medium and Large Breed Dry Dog Food 3kg',
-      price: 'P2,997',
+      price: '₱2,997',
       image: '🐕',
       rating: 5
     },
@@ -12,7 +12,7 @@ const Products = ({ onProductClick }) => {
       id: 2,
       name: 'Interactive Toy Set',
       description: 'Engaging toys to keep your pet active and happy',
-      price: '$19.99',
+      price: '₱199',
       image: '🎾',
       rating: 4.6
     },
@@ -20,7 +20,7 @@ const Products = ({ onProductClick }) => {
       id: 3,
       name: 'Grooming Kit',
       description: 'Complete grooming set for maintaining your pet\'s hygiene',
-      price: '$34.99',
+      price: '₱349',
       image: '✂️',
       rating: 4.9
     },
@@ -28,7 +28,7 @@ const Products = ({ onProductClick }) => {
       id: 4,
       name: 'Comfort Collar',
       description: 'Soft and adjustable collar for your pet\'s comfort',
-      price: '$24.99',
+      price: '₱249',
       image: '🦴',
       rating: 4.7
     }

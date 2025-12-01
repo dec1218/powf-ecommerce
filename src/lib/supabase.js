@@ -1,20 +1,7 @@
-// Temporary Supabase configuration for demo purposes
-// This prevents errors when environment variables are not set
+// src/lib/supabase.js
+import { createClient } from '@supabase/supabase-js'
 
-let supabase = null
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-// Only initialize Supabase if environment variables are available
-if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
-  try {
-    const { createClient } = await import('@supabase/supabase-js')
-    supabase = createClient(
-      import.meta.env.VITE_SUPABASE_URL,
-      import.meta.env.VITE_SUPABASE_ANON_KEY
-    )
-  } catch (error) {
-    console.log('Supabase not configured - using demo mode')
-  }
-}
-
-export { supabase }
-
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)

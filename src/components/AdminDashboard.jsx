@@ -76,21 +76,6 @@ const AdminDashboard = ({ onShowAddProduct, onLogout }) => {
 
   return (
     <div className="min-h-screen bg-amber-50">
-      {/* Header - simplified (logo/search/profile/cart removed) */}
-      <header className="bg-amber-50 px-4 py-4 sm:px-6 lg:px-8 border-b-2 border-amber-200">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl sm:text-2xl font-bold text-amber-900">
-            Dashboard
-          </h2>
-          <button
-            onClick={onLogout}
-            className="bg-amber-800 text-white px-4 py-2 rounded-lg hover:bg-amber-900 transition-colors duration-200 font-medium"
-          >
-            Log out
-          </button>
-        </div>
-      </header>
-
       <main className="px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-7xl mx-auto">
           {/* Summary Cards */}
@@ -157,9 +142,7 @@ const AdminDashboard = ({ onShowAddProduct, onLogout }) => {
                           </span>
                         </div>
                       </td>
-                      <td className="py-4 px-4 text-amber-700 font-medium">
-                        P{product.price.toFixed(2)}
-                      </td>
+                      <td className="py-4 px-4 text-amber-700 font-medium">₱{Math.round(product.price)}</td>
                       <td className="py-4 px-4 text-amber-700 font-medium">
                         {product.stock}
                       </td>

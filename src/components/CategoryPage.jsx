@@ -14,7 +14,7 @@ const CategoryPage = ({ categoryName, onBackToHome, onShowLogin, onProductClick 
     {
       id: 1,
       name: 'Premium Dog Food',
-      price: '$29.99',
+      price: '₱299',
       image: '🐕',
       rating: 4.8,
       description: 'High-quality nutrition for your pet'
@@ -22,7 +22,7 @@ const CategoryPage = ({ categoryName, onBackToHome, onShowLogin, onProductClick 
     {
       id: 2,
       name: 'Grain-Free Cat Food',
-      price: '$24.99',
+      price: '₱249',
       image: '🐱',
       rating: 4.6,
       description: 'Natural ingredients for healthy cats'
@@ -30,7 +30,7 @@ const CategoryPage = ({ categoryName, onBackToHome, onShowLogin, onProductClick 
     {
       id: 3,
       name: 'Puppy Formula',
-      price: '$19.99',
+      price: '₱199',
       image: '🐶',
       rating: 4.9,
       description: 'Specially formulated for growing puppies'
@@ -38,7 +38,7 @@ const CategoryPage = ({ categoryName, onBackToHome, onShowLogin, onProductClick 
     {
       id: 4,
       name: 'Senior Dog Food',
-      price: '$34.99',
+      price: '₱349',
       image: '🐕‍🦺',
       rating: 4.7,
       description: 'Gentle nutrition for older dogs'
@@ -46,7 +46,7 @@ const CategoryPage = ({ categoryName, onBackToHome, onShowLogin, onProductClick 
     {
       id: 5,
       name: 'Wet Cat Food',
-      price: '$14.99',
+      price: '₱149',
       image: '🥫',
       rating: 4.5,
       description: 'Delicious wet food variety pack'
@@ -54,7 +54,7 @@ const CategoryPage = ({ categoryName, onBackToHome, onShowLogin, onProductClick 
     {
       id: 6,
       name: 'Organic Treats',
-      price: '$12.99',
+      price: '₱129',
       image: '🦴',
       rating: 4.8,
       description: 'Natural treats for training'

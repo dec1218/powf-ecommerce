@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const Signup = ({ onSwitchToLogin, onClose }) => {
   const [email, setEmail] = useState('')
@@ -7,14 +9,13 @@ const Signup = ({ onSwitchToLogin, onClose }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [isSignedUp, setIsSignedUp] = useState(false)
+  const navigate = useNavigate()
+  const { signup } = useAuth()
 
   const handleSignUp = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
-
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
 
     // Validation
     if (email === '' || password === '' || confirmPassword === '') {
@@ -24,8 +25,13 @@ const Signup = ({ onSwitchToLogin, onClose }) => {
     } else if (password.length < 6) {
       setError('Password must be at least 6 characters')
     } else {
-      setIsSignedUp(true)
-      setError('')
+      try {
+        await signup({ email, password })
+        setIsSignedUp(true)
+        setError('')
+      } catch (err) {
+        setError(err.message || 'Signup failed')
+      }
     }
     
     setLoading(false)
@@ -58,7 +64,7 @@ const Signup = ({ onSwitchToLogin, onClose }) => {
               <p className="text-sm">Welcome to Pawfect Shop! You can now log in.</p>
             </div>
             <button
-              onClick={onSwitchToLogin}
+              onClick={() => (onSwitchToLogin ? onSwitchToLogin() : navigate('/login'))}
               className="w-full bg-amber-800 text-white font-bold py-3 px-6 rounded-lg border-2 border-amber-800 hover:bg-amber-900 hover:border-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95"
             >
               GO TO LOGIN

@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Header from './Header'
 
 const OrderHistoryPage = ({ onBackToHome, onShowLogin, onShowCart }) => {
   const [activeTab, setActiveTab] = useState('history')
+  const navigate = useNavigate()
 
   // Sample order data
   const orders = [
@@ -10,21 +12,21 @@ const OrderHistoryPage = ({ onBackToHome, onShowLogin, onShowCart }) => {
       id: 1,
       product: 'Purina Supercoat Adult',
       date: '25-10-2025',
-      total: 300.00,
+      total: 300,
       status: 'Pending'
     },
     {
       id: 2,
       product: 'Leather Dog Collar',
       date: '24-10-2025',
-      total: 700.00,
+      total: 700,
       status: 'Delivered'
     },
     {
       id: 3,
       product: 'Premium Dog Food',
       date: '23-10-2025',
-      total: 450.00,
+      total: 450,
       status: 'Delivered'
     }
   ]
@@ -51,7 +53,7 @@ const OrderHistoryPage = ({ onBackToHome, onShowLogin, onShowCart }) => {
           {/* Back Button and Title */}
           <div className="flex items-center justify-between mb-8">
             <button
-              onClick={onBackToHome}
+              onClick={() => navigate('/profile')}
               className="flex items-center text-amber-700 hover:text-amber-900 transition-colors duration-200"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,9 +113,7 @@ const OrderHistoryPage = ({ onBackToHome, onShowLogin, onShowCart }) => {
                       <tr key={order.id} className="border-b border-amber-100 last:border-0">
                         <td className="py-4 px-4 text-amber-700 font-medium">{order.product}</td>
                         <td className="py-4 px-4 text-amber-700 font-medium">{order.date}</td>
-                        <td className="py-4 px-4 text-amber-700 font-medium">
-                          ₱{order.total.toFixed(2)}
-                        </td>
+                        <td className="py-4 px-4 text-amber-700 font-medium">₱{order.total}</td>
                         <td className="py-4 px-4">
                           <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(order.status)}`}>
                             {order.status}

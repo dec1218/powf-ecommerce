@@ -9,7 +9,7 @@ const ProductDetailsPage = ({ product, onBackToHome, onShowLogin, onAddToCart })
     id: 1,
     name: 'Purina Pro Plan',
     description: 'Pro Plan Adult Sensitive Skin and Stomach Medium and Large Breed Dry Dog Food 3kg',
-    price: 'P2,997',
+    price: '₱2,997',
     rating: 5,
     image: '🐕'
   }

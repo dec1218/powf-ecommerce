@@ -43,25 +43,6 @@ const AddNewProduct = ({ onBackToDashboard, onSave }) => {
 
   return (
     <div className="min-h-screen bg-amber-50">
-      {/* Header */}
-      <header className="bg-amber-50 px-4 py-4 sm:px-6 lg:px-8 border-b-2 border-amber-200">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center">
-            <button
-              onClick={onBackToDashboard}
-              className="text-amber-700 hover:text-amber-900 mr-4 transition-colors duration-200"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h2 className="text-xl sm:text-2xl font-bold text-amber-900">
-              Add New Product
-            </h2>
-          </div>
-        </div>
-      </header>
-
       <main className="px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
@@ -110,8 +91,8 @@ const AddNewProduct = ({ onBackToDashboard, onSave }) => {
                     value={formData.price}
                     onChange={(e) => handleInputChange('price', e.target.value)}
                     className="w-full px-4 py-3 rounded-lg border-2 border-amber-200 bg-white text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
-                    placeholder="0.00"
-                    step="0.01"
+                    placeholder="0"
+                    step="1"
                   />
                 </div>
                 <div>
@@ -123,8 +104,8 @@ const AddNewProduct = ({ onBackToDashboard, onSave }) => {
                     value={formData.price2}
                     onChange={(e) => handleInputChange('price2', e.target.value)}
                     className="w-full px-4 py-3 rounded-lg border-2 border-amber-200 bg-white text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
-                    placeholder="0.00"
-                    step="0.01"
+                    placeholder="0"
+                    step="1"
                   />
                 </div>
               </div>
