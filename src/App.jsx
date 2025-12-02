@@ -14,9 +14,10 @@ import ProductDetailsPage from './components/ProductDetailsPage'
 import Products from './components/AdminProducts'
 import ProfilePage from './components/ProfilePage'
 import Signup from './components/Signup'
+import Receipt from './components/Receipt'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ProductProvider } from './context/ProductContext'
-import Receipt from './components/Receipt'
+import { CartProvider } from './context/CartContext'
 
 // Protected Route - For pages that require authentication
 const ProtectedRoute = ({ children, requireRole }) => {
@@ -68,82 +69,82 @@ function App() {
     <Router>
       <AuthProvider>
         <ProductProvider>
-          <Routes>
-            <Route path="/" element={<Loadingscreen />} />
-            <Route path="/home" element={<Homepage />} />
-            
-            {/* Guest Routes - Only accessible when NOT logged in */}
-            <Route
-              path="/login"
-              element={
-                <GuestRoute>
-                  <Login />
-                </GuestRoute>
-              }
-            />
-            <Route
-              path="/signup"
-              element={
-                <GuestRoute>
-                  <Signup />
-                </GuestRoute>
-              }
-            />
-            
-            {/* Admin Routes - Protected, requires admin role */}
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute requireRole="admin">
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }
-            />
-            
-            
-            {/* Protected User Routes */}
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <ProfilePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/order-history"
-              element={
-                <ProtectedRoute>
-                  <OrderHistoryPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/checkout"
-              element={
-                <ProtectedRoute>
-                  <CheckoutPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/receipt"
-              element={
-                <ProtectedRoute>
-                  <Receipt />
-                </ProtectedRoute>
-              }
-            />
-            
-            {/* Public Routes - Accessible to everyone */}
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/categories" element={<Categories />} />
-            <Route path="/category/:id" element={<CategoryPage />} />
-            <Route path="/hero" element={<Hero />} />
-            {/* ❌ REMOVED DUPLICATE: <Route path="/" element={<Loadingscreen />} /> */}
-            <Route path="/product/:id" element={<ProductDetailsPage />} />
-            <Route path="/products" element={<Products />} />
-          </Routes>
+          <CartProvider>
+            <Routes>
+              <Route path="/" element={<Loadingscreen />} />
+              <Route path="/home" element={<Homepage />} />
+              
+              {/* Guest Routes - Only accessible when NOT logged in */}
+              <Route
+                path="/login"
+                element={
+                  <GuestRoute>
+                    <Login />
+                  </GuestRoute>
+                }
+              />
+              <Route
+                path="/signup"
+                element={
+                  <GuestRoute>
+                    <Signup />
+                  </GuestRoute>
+                }
+              />
+              
+              {/* Admin Routes - Protected, requires admin role */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              
+              {/* Protected User Routes */}
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/order-history"
+                element={
+                  <ProtectedRoute>
+                    <OrderHistoryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/checkout"
+                element={
+                  <ProtectedRoute>
+                    <CheckoutPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/receipt"
+                element={
+                  <ProtectedRoute>
+                    <Receipt />
+                  </ProtectedRoute>
+                }
+              />
+              
+              {/* Public Routes - Accessible to everyone */}
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/categories" element={<Categories />} />
+              <Route path="/category/:id" element={<CategoryPage />} />
+              <Route path="/hero" element={<Hero />} />
+              <Route path="/product/:id" element={<ProductDetailsPage />} />
+              <Route path="/products" element={<Products />} />
+            </Routes>
+          </CartProvider>
         </ProductProvider>
       </AuthProvider>
     </Router>
