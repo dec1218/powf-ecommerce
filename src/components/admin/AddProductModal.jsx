@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { uploadMultipleImages } from '../../lib/uploadHelpers'
 
-
-
 const AddProductModal = ({ isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState({
     productName: '',
@@ -47,29 +45,52 @@ const AddProductModal = ({ isOpen, onClose, onSave }) => {
   }
 
   const handleSubmit = async () => {
+    // Validation
     if (!formData.productName || !formData.category || !formData.price || !formData.description) {
       alert('Please fill in all required fields')
       return
     }
 
+    // Validate price
+    if (parseFloat(formData.price) <= 0) {
+      alert('Price must be greater than 0')
+      return
+    }
+
+    // Validate stock
+    if (formData.stock && parseInt(formData.stock) < 0) {
+      alert('Stock cannot be negative')
+      return
+    }
+
     try {
       setUploading(true)
+      console.log('📦 Starting product creation...')
+      console.log('📋 Form data:', formData)
 
       // Upload images to Supabase Storage
       let imageUrls = []
       if (imageFiles.length > 0) {
+        console.log('📸 Uploading images...')
         imageUrls = await uploadMultipleImages(imageFiles, 'products')
         console.log('✅ Images uploaded:', imageUrls)
       }
 
-      // Prepare product data with image URLs
+      // ⚠️ FIX: Properly parse numeric values
       const productData = {
-        ...formData,
+        productName: formData.productName.trim(),
+        category: formData.category,
+        description: formData.description.trim(),
+        price: parseFloat(formData.price),
+        price2: formData.price2 ? parseFloat(formData.price2) : null,
+        stock: formData.stock ? parseInt(formData.stock, 10) : 0, // Default to 0 if empty
         images: imageUrls
       }
 
+      console.log('💾 Saving product:', productData)
+
       // Call parent save function
-      onSave(productData)
+      await onSave(productData)
 
       // Clean up
       imagePreviews.forEach(url => URL.revokeObjectURL(url))
@@ -86,9 +107,11 @@ const AddProductModal = ({ isOpen, onClose, onSave }) => {
       })
       setImageFiles([])
       setImagePreviews([])
+      
+      console.log('✅ Product added successfully!')
     } catch (error) {
-      console.error('❌ Error uploading images:', error)
-      alert('Failed to upload images. Please try again.')
+      console.error('❌ Error adding product:', error)
+      alert('Failed to add product: ' + error.message)
     } finally {
       setUploading(false)
     }
@@ -191,9 +214,10 @@ const AddProductModal = ({ isOpen, onClose, onSave }) => {
                     value={formData.price}
                     onChange={(e) => handleInputChange('price', e.target.value)}
                     disabled={uploading}
+                    min="0"
+                    step="0.01"
                     className="w-full px-4 py-3 rounded-lg border-2 border-amber-200 bg-white text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 disabled:opacity-50"
-                    placeholder="0"
-                    step="1"
+                    placeholder="0.00"
                   />
                 </div>
                 <div>
@@ -205,23 +229,25 @@ const AddProductModal = ({ isOpen, onClose, onSave }) => {
                     value={formData.price2}
                     onChange={(e) => handleInputChange('price2', e.target.value)}
                     disabled={uploading}
+                    min="0"
+                    step="0.01"
                     className="w-full px-4 py-3 rounded-lg border-2 border-amber-200 bg-white text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 disabled:opacity-50"
-                    placeholder="0"
-                    step="1"
+                    placeholder="0.00"
                   />
                 </div>
                 <div>
                   <label className="block text-amber-900 font-medium mb-2">
-                    Stock:
+                    Stock: <span className="text-red-600">*</span>
                   </label>
                   <input
                     type="number"
                     value={formData.stock}
                     onChange={(e) => handleInputChange('stock', e.target.value)}
                     disabled={uploading}
+                    min="0"
+                    step="1"
                     className="w-full px-4 py-3 rounded-lg border-2 border-amber-200 bg-white text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 disabled:opacity-50"
                     placeholder="0"
-                    step="1"
                   />
                 </div>
               </div>

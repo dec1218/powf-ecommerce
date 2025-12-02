@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useProducts } from '../../context/ProductContext'
+import { supabase } from '../../lib/supabase'
 import AdminHeader from './AdminHeader'
 import StatsCards from './StatsCards'
 import ProductManagement from './ProductManagement'
@@ -14,67 +15,70 @@ const AdminDashboard = () => {
   const { logout, user } = useAuth()
   const { getAllProducts, addProduct, deleteProduct } = useProducts()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [orders, setOrders] = useState([])
+  const [payments, setPayments] = useState([])
+  const [loading, setLoading] = useState(true)
 
   // Get products from context
   const products = getAllProducts()
 
-  const [orders] = useState([
-    {
-      id: '1234',
-      customerName: 'Pirena',
-      date: '25-10-2025',
-      status: 'Delivered',
-    },
-    {
-      id: '5678',
-      customerName: 'Amihan',
-      date: '24-10-2025',
-      status: 'Pending',
-    },
-    {
-      id: '9012',
-      customerName: 'Miguel',
-      date: '23-10-2025',
-      status: 'Delivered',
-    },
-  ])
+  // Fetch orders and payments on mount
+  useEffect(() => {
+    fetchOrdersAndPayments()
+  }, [])
 
-  const [payments] = useState([
-    {
-      id: 1,
-      transactionId: 'TXN-001',
-      customerName: 'Pirena',
-      amount: 600.0,
-      paymentMethod: 'BI SCAN',
-      status: 'Paid',
-      date: '25-10-2025',
-    },
-    {
-      id: 2,
-      transactionId: 'TXN-002',
-      customerName: 'Amihan',
-      amount: 700.0,
-      paymentMethod: 'Maya',
-      status: 'Pending',
-      date: '24-10-2025',
-    },
-    {
-      id: 3,
-      transactionId: 'TXN-003',
-      customerName: 'Miguel',
-      amount: 450.0,
-      paymentMethod: 'Cash',
-      status: 'Paid',
-      date: '23-10-2025',
-    },
-  ])
+  const fetchOrdersAndPayments = async () => {
+    try {
+      setLoading(true)
+      console.log('📦 Fetching orders and payments...')
+
+      // Fetch all orders with user info
+      const { data: ordersData, error: ordersError } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          users (
+            full_name,
+            email
+          )
+        `)
+        .order('created_at', { ascending: false })
+
+      if (ordersError) throw ordersError
+
+      console.log('✅ Orders fetched:', ordersData?.length || 0)
+      setOrders(ordersData || [])
+
+      // Transform orders into payments data
+      const paymentsData = ordersData?.map(order => ({
+        id: order.id,
+        transactionId: order.order_number,
+        customerName: order.users?.full_name || order.users?.email?.split('@')[0] || 'Unknown',
+        amount: parseFloat(order.total_amount),
+        paymentMethod: order.payment_method,
+        status: order.payment_status,
+        date: new Date(order.created_at).toLocaleDateString('en-PH', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        })
+      })) || []
+
+      setPayments(paymentsData)
+      console.log('✅ Payments processed:', paymentsData.length)
+    } catch (error) {
+      console.error('❌ Error fetching orders/payments:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Calculate stats dynamically
   const stats = {
     totalProducts: products.length,
     totalOrders: orders.length,
-    pending: orders.filter(o => o.status === 'Pending').length,
-    completed: orders.filter(o => o.status === 'Delivered').length,
+    pending: orders.filter(o => o.status === 'pending').length,
+    completed: orders.filter(o => o.status === 'delivered').length,
   }
 
   const handleEditProduct = (productId) => {
@@ -93,14 +97,54 @@ const AdminDashboard = () => {
     setIsModalOpen(true)
   }
 
-  const handleSaveProduct = (formData) => {
+  const handleSaveProduct = async (formData) => {
     try {
-      addProduct(formData)
+      await addProduct(formData)
       setIsModalOpen(false)
       alert('Product added successfully! ✅')
     } catch (error) {
       console.error('Error saving product:', error)
       alert('Failed to add product')
+    }
+  }
+
+  const handleUpdateOrderStatus = async (orderId, newStatus) => {
+    try {
+      console.log('📝 Updating order status:', orderId, newStatus)
+
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', orderId)
+
+      if (error) throw error
+
+      // Refresh orders
+      await fetchOrdersAndPayments()
+      alert(`✅ Order status updated to ${newStatus}!`)
+    } catch (error) {
+      console.error('❌ Error updating order:', error)
+      alert('Failed to update order status')
+    }
+  }
+
+  const handleUpdatePaymentStatus = async (orderId, newPaymentStatus) => {
+    try {
+      console.log('💳 Updating payment status:', orderId, newPaymentStatus)
+
+      const { error } = await supabase
+        .from('orders')
+        .update({ payment_status: newPaymentStatus })
+        .eq('id', orderId)
+
+      if (error) throw error
+
+      // Refresh orders
+      await fetchOrdersAndPayments()
+      alert(`✅ Payment status updated to ${newPaymentStatus}!`)
+    } catch (error) {
+      console.error('❌ Error updating payment:', error)
+      alert('Failed to update payment status')
     }
   }
 
@@ -136,14 +180,31 @@ const AdminDashboard = () => {
           </div>
 
           <StatsCards stats={stats} />
+          
           <ProductManagement 
             products={products}
             onEdit={handleEditProduct}
             onDelete={handleDeleteProduct}
             onAdd={handleAddProduct}
           />
-          <OrderManagement orders={orders} />
-          <PaymentManagement payments={payments} />
+          
+          {loading ? (
+            <div className="bg-white rounded-xl shadow-lg p-12 mb-8 text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-800 mx-auto mb-4"></div>
+              <p className="text-amber-600">Loading orders and payments...</p>
+            </div>
+          ) : (
+            <>
+              <OrderManagement 
+                orders={orders} 
+                onUpdateStatus={handleUpdateOrderStatus}
+              />
+              <PaymentManagement 
+                payments={payments}
+                onUpdatePaymentStatus={handleUpdatePaymentStatus}
+              />
+            </>
+          )}
         </div>
       </main>
 

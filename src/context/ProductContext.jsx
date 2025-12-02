@@ -38,7 +38,7 @@ export function ProductProvider({ children }) {
     }
   }
 
-  // Add new product
+  // Add new product - FIXED VERSION ✅
   const addProduct = async (productData) => {
     try {
       console.log('📦 Adding product:', productData)
@@ -52,25 +52,23 @@ export function ProductProvider({ children }) {
 
       if (categoryError) {
         console.error('❌ Category lookup error:', categoryError)
-        // Continue without category if lookup fails
       }
 
       if (!categoryData) {
         console.warn('⚠️ Category not found:', productData.category)
-        // You can either throw error or continue with null category
         throw new Error(`Category "${productData.category}" not found. Please select a valid category.`)
       }
 
       console.log('✅ Category found:', categoryData)
 
-      // 🔥 STEP 2: Create product with the category UUID
+      // 🔥 STEP 2: Create product with proper data types
       const newProduct = {
         name: productData.productName,
         description: productData.description,
-        category_id: categoryData?.id || null, // Use null if category not found
-        price: parseFloat(productData.price),
+        category_id: categoryData.id, // Use the UUID
+        price: parseFloat(productData.price), // Ensure it's a float
         sale_price: productData.price2 ? parseFloat(productData.price2) : null,
-        stock: parseInt(productData.stock) || 0,
+        stock: parseInt(productData.stock, 10) || 0, // ⚠️ FIX: Parse as integer with base 10
         images: productData.images || [],
         rating: 0,
         is_active: true
@@ -119,7 +117,7 @@ export function ProductProvider({ children }) {
           category_id: categoryData.id,
           price: parseFloat(productData.price),
           sale_price: productData.price2 ? parseFloat(productData.price2) : null,
-          stock: parseInt(productData.stock) || 0
+          stock: parseInt(productData.stock, 10) || 0 // ⚠️ FIX: Parse with base 10
         })
         .eq('id', productId)
 
