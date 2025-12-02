@@ -18,6 +18,7 @@ import Receipt from './components/Receipt'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ProductProvider } from './context/ProductContext'
 import { CartProvider } from './context/CartContext'
+import { OrderProvider } from './context/OrderContext'
 
 // Protected Route - For pages that require authentication
 const ProtectedRoute = ({ children, requireRole }) => {
@@ -70,7 +71,8 @@ function App() {
       <AuthProvider>
         <ProductProvider>
           <CartProvider>
-            <Routes>
+            <OrderProvider>
+              <Routes>
               <Route path="/" element={<Loadingscreen />} />
               <Route path="/home" element={<Homepage />} />
               
@@ -144,7 +146,8 @@ function App() {
               <Route path="/product/:id" element={<ProductDetailsPage />} />
               <Route path="/products" element={<Products />} />
             </Routes>
-          </CartProvider>
+          </OrderProvider>
+        </CartProvider>
         </ProductProvider>
       </AuthProvider>
     </Router>
