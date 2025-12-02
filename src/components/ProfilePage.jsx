@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import Header from './Header'
 
-const ProfilePage = ({ onBackToHome, onShowLogin, onShowOrderHistory }) => {
-  const [activeSection, setActiveSection] = useState('profile')
+const ProfilePage = () => {
   const navigate = useNavigate()
+  const { logout, user } = useAuth()
+  const [activeSection, setActiveSection] = useState('profile')
+  
   const [profileData, setProfileData] = useState({
-    username: '',
-    name: '',
-    email: 'piren****@gmail.com',
-    phone: ''
+    username: user?.username || '',
+    name: user?.full_name || '',
+    email: user?.email || '',
+    phone: user?.phone || ''
   })
 
   const handleInputChange = (field, value) => {
@@ -24,6 +27,17 @@ const ProfilePage = ({ onBackToHome, onShowLogin, onShowOrderHistory }) => {
     // Here you would typically save to backend
   }
 
+  const handleLogout = async () => {
+    try {
+      console.log('👋 Logging out from Profile...')
+      await logout()
+      console.log('✅ Logout successful, redirecting to login...')
+      navigate('/login', { replace: true })
+    } catch (error) {
+      console.error('❌ Logout error:', error)
+    }
+  }
+
   const navigationItems = [
     {
       id: 'profile',
@@ -36,28 +50,39 @@ const ProfilePage = ({ onBackToHome, onShowLogin, onShowOrderHistory }) => {
       subItems: ['Addresses', 'Change Password']
     },
     {
-      id: 'log out',
-      label: 'Log Out',
-      icon: (
-        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M7 4V2C7 1.45 7.45 1 8 1H16C16.55 1 17 1.45 17 2V4H20C20.55 4 21 4.45 21 5S20.55 6 20 6H19V19C19 20.1 18.1 21 17 21H7C5.9 21 5 20.1 5 19V6H4C3.45 6 3 5.55 3 5S3.45 4 4 4H7ZM9 3V4H15V3H9ZM7 6V19H17V6H7Z"/>
-        </svg>
-      )
-    },
-    {
-      id: 'Pruchases',
+      id: 'purchases',
       label: 'My Purchase',
       icon: (
         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
         </svg>
       )
+    },
+    {
+      id: 'logout',
+      label: 'Log Out',
+      icon: (
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M17 7L15.59 8.41L18.17 11H8V13H18.17L15.59 15.59L17 17L22 12L17 7ZM4 5H12V3H4C2.9 3 2 3.9 2 5V19C2 20.1 2.9 21 4 21H12V19H4V5Z"/>
+        </svg>
+      ),
+      action: handleLogout
     }
   ]
 
+  const handleNavigationClick = (item) => {
+    if (item.id === 'logout') {
+      item.action()
+    } else if (item.id === 'purchases') {
+      navigate('/order-history')
+    } else {
+      setActiveSection(item.id)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-amber-50">
-      <Header onShowLogin={onShowLogin} />
+      <Header />
       
       {/* Main Content */}
       <main className="px-4 sm:px-6 lg:px-8 py-8">
@@ -69,12 +94,15 @@ const ProfilePage = ({ onBackToHome, onShowLogin, onShowOrderHistory }) => {
                 {/* User Profile */}
                 <div className="flex items-center space-x-4 mb-8">
                   <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
-                    <svg className="w-8 h-8 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                    </svg>
+                    <span className="text-2xl font-bold text-amber-600">
+                      {user?.email?.charAt(0).toUpperCase() || 'U'}
+                    </span>
                   </div>
                   <div>
-                    <h3 className="font-bold text-amber-900 text-lg">Pirena</h3>
+                    <h3 className="font-bold text-amber-900 text-lg">
+                      {user?.full_name || user?.email?.split('@')[0] || 'User'}
+                    </h3>
+                    <p className="text-xs text-amber-600">{user?.role || 'user'}</p>
                   </div>
                 </div>
 
@@ -83,16 +111,12 @@ const ProfilePage = ({ onBackToHome, onShowLogin, onShowOrderHistory }) => {
                   {navigationItems.map((item) => (
                     <div key={item.id}>
                       <button
-                        onClick={() => {
-                          if (item.id === 'Pruchases') {
-                            navigate('/order-history')
-                          } else {
-                            setActiveSection(item.id)
-                          }
-                        }}
+                        onClick={() => handleNavigationClick(item)}
                         className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors duration-200 ${
                           activeSection === item.id
                             ? 'bg-amber-200 text-amber-900'
+                            : item.id === 'logout'
+                            ? 'text-red-600 hover:bg-red-100'
                             : 'text-amber-700 hover:bg-amber-200'
                         }`}
                       >
@@ -101,7 +125,7 @@ const ProfilePage = ({ onBackToHome, onShowLogin, onShowOrderHistory }) => {
                       </button>
                       
                       {/* Sub-items for My Account */}
-                      {item.id === 'profile' && item.subItems && (
+                      {item.id === 'profile' && item.subItems && activeSection === 'profile' && (
                         <div className="ml-8 mt-2 space-y-1">
                           {item.subItems.map((subItem) => (
                             <button
@@ -144,7 +168,7 @@ const ProfilePage = ({ onBackToHome, onShowLogin, onShowOrderHistory }) => {
                   {/* Name */}
                   <div>
                     <label className="block text-amber-900 font-medium mb-2">
-                      Name:
+                      Full Name:
                     </label>
                     <input
                       type="text"
@@ -165,13 +189,9 @@ const ProfilePage = ({ onBackToHome, onShowLogin, onShowOrderHistory }) => {
                       value={profileData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       className="w-full px-4 py-3 rounded-lg border-2 border-amber-200 bg-white text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
+                      disabled
                     />
-                    <button
-                      type="button"
-                      className="text-sm text-amber-600 hover:text-amber-800 underline mt-1 transition-colors duration-200"
-                    >
-                      Change
-                    </button>
+                    <p className="text-xs text-amber-600 mt-1">Email cannot be changed</p>
                   </div>
 
                   {/* Phone Number */}
@@ -186,12 +206,6 @@ const ProfilePage = ({ onBackToHome, onShowLogin, onShowOrderHistory }) => {
                       className="w-full px-4 py-3 rounded-lg border-2 border-amber-200 bg-white text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
                       placeholder="Enter your phone number"
                     />
-                    <button
-                      type="button"
-                      className="text-sm text-amber-600 hover:text-amber-800 underline mt-1 transition-colors duration-200"
-                    >
-                      Change
-                    </button>
                   </div>
 
                   {/* Save Button */}
@@ -199,9 +213,9 @@ const ProfilePage = ({ onBackToHome, onShowLogin, onShowOrderHistory }) => {
                     <button
                       type="button"
                       onClick={handleSave}
-                      className="bg-white text-amber-900 font-bold py-3 px-8 rounded-lg border-2 border-amber-300 hover:bg-amber-50 hover:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105"
+                      className="bg-amber-800 text-white font-bold py-3 px-8 rounded-lg hover:bg-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105"
                     >
-                      Save
+                      Save Changes
                     </button>
                   </div>
                 </form>

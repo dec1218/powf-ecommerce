@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-const Header = ({ onShowLogin, onShowCart }) => {
+const Header = ({ onShowCart }) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const { logout, isAuthenticated } = useAuth(); // ✅ use logout directly
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -16,7 +18,10 @@ const Header = ({ onShowLogin, onShowCart }) => {
         <div className="flex items-center justify-between">
           
           {/* Logo */}
-          <div className="flex items-center space-x-2">
+          <button
+            onClick={() => navigate('/home')}
+            className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+          >
             <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
               <svg 
                 className="w-5 h-5 text-white" 
@@ -29,7 +34,7 @@ const Header = ({ onShowLogin, onShowCart }) => {
             <h1 className="text-xl sm:text-2xl font-bold text-amber-900">
               Pawfect Shop
             </h1>
-          </div>
+          </button>
 
           {/* Search Bar */}
           <div className="hidden md:flex flex-1 max-w-md mx-8">
@@ -57,37 +62,43 @@ const Header = ({ onShowLogin, onShowCart }) => {
           {/* Navigation Icons */}
           <div className="flex items-center space-x-4 sm:space-x-6">
 
-            {/* Profile / Login */}
-            <button
-              onClick={onShowLogin}
-              className="flex flex-col items-center space-y-1 text-amber-900 hover:text-amber-700 transition-colors duration-200"
-            >
-              <div className="w-8 h-8 bg-amber-200 rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                </svg>
-              </div>
-              <span className="text-xs font-medium hidden sm:block">PROFILE</span>
-            </button>
-
-            {/* Logout Button — only visible when logged in */}
-            {isAuthenticated && (
+            {/* Profile / Login - Only show if NOT authenticated */}
+            {!isAuthenticated ? (
               <button
-                onClick={logout}
-                className="flex flex-col items-center space-y-1 text-red-600 hover:text-red-400 transition-colors duration-200"
+                onClick={() => navigate('/login')}
+                className="flex flex-col items-center space-y-1 text-amber-900 hover:text-amber-700 transition-colors duration-200"
               >
-                <div className="w-8 h-8 bg-red-200 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-amber-200 rounded-full flex items-center justify-center">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M16 13V11H8V8L4 12L8 16V13H16ZM18 3H12V5H18V19H12V21H18C19.1 21 20 20.1 20 19V5C20 3.9 19.1 3 18 3Z"/>
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                   </svg>
                 </div>
-                <span className="text-xs font-medium hidden sm:block">LOGOUT</span>
+                <span className="text-xs font-medium hidden sm:block">LOGIN</span>
+              </button>
+            ) : (
+              // Show Profile button when authenticated
+              <button
+                onClick={() => navigate('/profile')}
+                className="flex flex-col items-center space-y-1 text-amber-900 hover:text-amber-700 transition-colors duration-200"
+              >
+                <div className="w-8 h-8 bg-amber-200 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-bold text-amber-900">
+                    {user?.email?.charAt(0).toUpperCase() || 'U'}
+                  </span>
+                </div>
+                <span className="text-xs font-medium hidden sm:block">PROFILE</span>
               </button>
             )}
 
             {/* Cart */}
             <button 
-              onClick={onShowCart}
+              onClick={() => {
+                if (onShowCart) {
+                  onShowCart()
+                } else {
+                  navigate('/cart')
+                }
+              }}
               className="flex flex-col items-center space-y-1 text-amber-900 hover:text-amber-700 transition-colors duration-200"
             >
               <div className="w-8 h-8 bg-amber-200 rounded-full flex items-center justify-center relative">
