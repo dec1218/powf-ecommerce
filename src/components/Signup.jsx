@@ -96,11 +96,7 @@ const Signup = () => {
           </div>
         </div>
 
-        {/* Info Banner */}
-        <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded-lg mb-6 text-sm">
-          <p className="font-medium mb-1">Create User Account:</p>
-          <p>Sign up creates a regular user account. Admin accounts can only be created in Supabase database.</p>
-        </div>
+        
 
         {/* Signup Form Container */}
         <div className="bg-amber-200 rounded-xl p-6 sm:p-8">

@@ -82,16 +82,7 @@ const Login = () => {
           </div>
         </div>
 
-        {/* Demo Instructions */}
-        <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded-lg mb-6 text-sm">
-          <p className="font-medium mb-1">Demo Credentials:</p>
-          <p className="mb-2"><strong>Admin:</strong></p>
-          <p>Email: <span className="font-mono">admin@pawfect.com</span></p>
-          <p className="mb-2">Password: <span className="font-mono">admin123</span></p>
-          <p><strong>User:</strong></p>
-          <p>Email: <span className="font-mono">user@pawfect.com</span></p>
-          <p>Password: <span className="font-mono">user123</span></p>
-        </div>
+       
 
         {/* Login Form Container */}
         <div className="bg-amber-200 rounded-xl p-6 sm:p-8">
