@@ -1,17 +1,20 @@
-import { useState } from 'react'
+import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 
 const Header = ({ onShowLogin, onShowCart }) => {
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useState("");
+  const { logout, isAuthenticated } = useAuth(); // ✅ use logout directly
 
   const handleSearch = (e) => {
-    e.preventDefault()
-    console.log('Searching for:', searchQuery)
-  }
+    e.preventDefault();
+    console.log("Searching for:", searchQuery);
+  };
 
   return (
     <header className="bg-amber-50 px-4 py-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between">
+          
           {/* Logo */}
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
@@ -28,7 +31,7 @@ const Header = ({ onShowLogin, onShowCart }) => {
             </h1>
           </div>
 
-          {/* Search Bar - Hidden on mobile, visible on tablet+ */}
+          {/* Search Bar */}
           <div className="hidden md:flex flex-1 max-w-md mx-8">
             <form onSubmit={handleSearch} className="w-full">
               <div className="relative">
@@ -53,7 +56,8 @@ const Header = ({ onShowLogin, onShowCart }) => {
 
           {/* Navigation Icons */}
           <div className="flex items-center space-x-4 sm:space-x-6">
-            {/* Profile */}
+
+            {/* Profile / Login */}
             <button
               onClick={onShowLogin}
               className="flex flex-col items-center space-y-1 text-amber-900 hover:text-amber-700 transition-colors duration-200"
@@ -65,6 +69,21 @@ const Header = ({ onShowLogin, onShowCart }) => {
               </div>
               <span className="text-xs font-medium hidden sm:block">PROFILE</span>
             </button>
+
+            {/* Logout Button — only visible when logged in */}
+            {isAuthenticated && (
+              <button
+                onClick={logout}
+                className="flex flex-col items-center space-y-1 text-red-600 hover:text-red-400 transition-colors duration-200"
+              >
+                <div className="w-8 h-8 bg-red-200 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M16 13V11H8V8L4 12L8 16V13H16ZM18 3H12V5H18V19H12V21H18C19.1 21 20 20.1 20 19V5C20 3.9 19.1 3 18 3Z"/>
+                  </svg>
+                </div>
+                <span className="text-xs font-medium hidden sm:block">LOGOUT</span>
+              </button>
+            )}
 
             {/* Cart */}
             <button 
@@ -82,7 +101,7 @@ const Header = ({ onShowLogin, onShowCart }) => {
           </div>
         </div>
 
-        {/* Mobile Search Bar */}
+        {/* Mobile Search */}
         <div className="md:hidden mt-4">
           <form onSubmit={handleSearch}>
             <div className="relative">
@@ -104,9 +123,10 @@ const Header = ({ onShowLogin, onShowCart }) => {
             </div>
           </form>
         </div>
+
       </div>
     </header>
-  )
-}
+  );
+};
 
-export default Header
+export default Header;

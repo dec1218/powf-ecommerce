@@ -1,16 +1,25 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-const Login = ({ onSwitchToSignup, onClose }) => {
+const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { login, isAuthenticated, role, authChecked } = useAuth()
 
+  // Redirect if already logged in
+  useEffect(() => {
+    if (authChecked && isAuthenticated) {
+      if (role === 'admin') {
+        navigate('/admin', { replace: true })
+      } else {
+        navigate('/home', { replace: true })
+      }
+    }
+  }, [authChecked, isAuthenticated, role, navigate])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -23,70 +32,32 @@ const Login = ({ onSwitchToSignup, onClose }) => {
         setLoading(false)
         return
       }
+
+      console.log('🔑 Starting login process...')
+
+      // Call login - returns user with role
       const user = await login({ email, password })
-      setIsLoggedIn(true)
-      setError('')
-      // redirect by role
+      
+      console.log('✅ Login successful, user:', user)
+      console.log('👤 User role:', user?.role)
+      
+      // Small delay to ensure state is updated
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Navigate based on role
       if (user?.role === 'admin') {
+        console.log('🔀 Navigating to /admin')
         navigate('/admin', { replace: true })
       } else {
+        console.log('🔀 Navigating to /home')
         navigate('/home', { replace: true })
       }
+      
     } catch (err) {
-      setError(err.message || 'Login failed')
+      console.error('❌ Login error:', err)
+      setError(err.message || 'Invalid email or password')
+      setLoading(false)
     }
-    
-    setLoading(false)
-  }
-
-
-  const handleLogout = () => {
-    setIsLoggedIn(false)
-    setEmail('')
-    setPassword('')
-    setError('')
-  }
-
-  // Show success message when logged in
-  if (isLoggedIn) {
-    return (
-      <div className="min-h-screen bg-amber-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-amber-100 rounded-2xl shadow-lg p-6 sm:p-8">
-          <div className="text-center">
-            <div className="flex justify-between items-center mb-4">
-              <h1 className="text-3xl sm:text-4xl font-bold text-amber-900">
-                Pawfect Shop
-              </h1>
-              {onClose && (
-                <button
-                  onClick={onClose}
-                  className="text-amber-600 hover:text-amber-800 transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-            <div className="bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg mb-6">
-              <div className="flex items-center justify-center mb-2">
-                <svg className="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span className="font-bold">Login Successful!</span>
-              </div>
-              <p className="text-sm">Welcome to Pawfect Shop!</p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="w-full bg-amber-800 text-white font-bold py-3 px-6 rounded-lg border-2 border-amber-800 hover:bg-amber-900 hover:border-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 active:scale-95"
-            >
-              LOG OUT
-            </button>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -113,9 +84,13 @@ const Login = ({ onSwitchToSignup, onClose }) => {
 
         {/* Demo Instructions */}
         <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded-lg mb-6 text-sm">
-          <p className="font-medium mb-1">Demo Mode:</p>
-          <p>Email: <span className="font-mono">demo@example.com</span></p>
-          <p>Password: <span className="font-mono">password</span></p>
+          <p className="font-medium mb-1">Demo Credentials:</p>
+          <p className="mb-2"><strong>Admin:</strong></p>
+          <p>Email: <span className="font-mono">admin@pawfect.com</span></p>
+          <p className="mb-2">Password: <span className="font-mono">admin123</span></p>
+          <p><strong>User:</strong></p>
+          <p>Email: <span className="font-mono">user@pawfect.com</span></p>
+          <p>Password: <span className="font-mono">user123</span></p>
         </div>
 
         {/* Login Form Container */}
@@ -134,6 +109,7 @@ const Login = ({ onSwitchToSignup, onClose }) => {
                 className="w-full px-4 py-3 rounded-lg border-2 border-amber-800 bg-white text-amber-900 placeholder-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent transition-all duration-200"
                 placeholder="Enter your email"
                 required
+                disabled={loading}
               />
             </div>
 
@@ -150,17 +126,8 @@ const Login = ({ onSwitchToSignup, onClose }) => {
                 className="w-full px-4 py-3 rounded-lg border-2 border-amber-800 bg-white text-amber-900 placeholder-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent transition-all duration-200"
                 placeholder="Enter your password"
                 required
+                disabled={loading}
               />
-            </div>
-
-            {/* Forgot Password Link */}
-            <div className="text-right">
-              <a 
-                href="#" 
-                className="text-sm text-amber-800 hover:text-amber-900 underline transition-colors duration-200"
-              >
-                Forgot Password?
-              </a>
             </div>
 
             {/* Error Message */}
@@ -185,8 +152,9 @@ const Login = ({ onSwitchToSignup, onClose }) => {
             <span className="text-sm text-amber-800">
               Don't have an account?{' '}
               <button
-                onClick={() => (onSwitchToSignup ? onSwitchToSignup() : navigate('/signup'))}
+                onClick={() => navigate('/signup')}
                 className="text-amber-900 font-medium hover:text-amber-950 underline transition-colors duration-200"
+                disabled={loading}
               >
                 Sign up
               </button>
@@ -199,4 +167,3 @@ const Login = ({ onSwitchToSignup, onClose }) => {
 }
 
 export default Login
-

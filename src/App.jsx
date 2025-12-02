@@ -19,50 +19,80 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import Receipt from './components/Receipt'
 
 const ProtectedRoute = ({ children, requireRole }) => {
-  const { isAuthenticated, loading, role } = useAuth()
-  if (loading) return null
-  if (!isAuthenticated) return <Navigate to="/home" replace />
-  if (requireRole && role !== requireRole) return <Navigate to="/home" replace />
+  const { isAuthenticated, authChecked, role } = useAuth()
+  
+  // Wait for auth to be checked before rendering
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-amber-50 flex items-center justify-center">
+        <div className="text-amber-900 text-xl">Loading...</div>
+      </div>
+    )
+  }
+  
+  // If not authenticated, redirect to login
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+  
+  // If role is required and doesn't match, redirect to home
+  if (requireRole && role !== requireRole) {
+    return <Navigate to="/home" replace />
+  }
+  
   return children
 }
 
-function App() {
-  const auth = JSON.parse(localStorage.getItem('auth'));
-  console.log(auth);
-  console.log('profile role:', auth?.user?.role);
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<Loadingscreen />} />
+      <Route path="/home" element={<Homepage />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      
+      {/* Admin Routes - Protected */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute requireRole="admin">
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* User Routes - Some Protected */}
+      <Route path="/add-product" element={<AddNewProduct />} />
+      <Route path="/cart" element={<CartPage />} />
+      <Route path="/categories" element={<Categories />} />
+      <Route path="/category/:id" element={<CategoryPage />} />
+      <Route path="/checkout" element={<CheckoutPage />} />
+      <Route path="/receipt" element={<Receipt />} />
+      <Route path="/hero" element={<Hero />} />
+      <Route path="/loading" element={<Loadingscreen />} />
+      <Route path="/order-history" element={<OrderHistoryPage />} />
+      <Route path="/product/:id" element={<ProductDetailsPage />} />
+      <Route path="/products" element={<Products />} />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
+  )
+}
 
+function App() {
   return (
     <Router>
       <AuthProvider>
-        <Routes>
-          <Route path="/" element={<Loadingscreen />} />
-          <Route path="/home" element={<Homepage />} />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute requireRole="admin">
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/add-product" element={<AddNewProduct />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/categories" element={<Categories />} />
-          <Route path="/category/:id" element={<CategoryPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/receipt" element={<Receipt />} />
-          <Route path="/hero" element={<Hero />} />
-          <Route path="/loading" element={<Loadingscreen />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/order-history" element={<OrderHistoryPage />} />
-          <Route path="/product/:id" element={<ProductDetailsPage />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/signup" element={<Signup />} />
-        </Routes>
+        <AppRoutes />
       </AuthProvider>
     </Router>
   )
 }
 
-export default App;
+export default App
