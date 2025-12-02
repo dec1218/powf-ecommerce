@@ -21,6 +21,7 @@ const ProductManagement = ({ products, onEdit, onDelete, onAdd }) => {
           <thead>
             <tr className="border-b-2 border-amber-200">
               <th className="text-left py-4 px-4 text-amber-900 font-bold">Name</th>
+              <th className="text-left py-4 px-4 text-amber-900 font-bold">Category</th>
               <th className="text-left py-4 px-4 text-amber-900 font-bold">Price</th>
               <th className="text-left py-4 px-4 text-amber-900 font-bold">Stock</th>
               <th className="text-left py-4 px-4 text-amber-900 font-bold">Action</th>
@@ -31,15 +32,40 @@ const ProductManagement = ({ products, onEdit, onDelete, onAdd }) => {
               <tr key={product.id} className="border-b border-amber-100 last:border-0 hover:bg-amber-50 transition-colors">
                 <td className="py-4 px-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center text-2xl">
-                      {product.image}
+                    <div className="w-16 h-16 bg-amber-100 rounded-lg flex items-center justify-center overflow-hidden">
+                      {product.images && product.images.length > 0 ? (
+                        <img
+                          src={product.images[0]}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-3xl">{product.image || '🎁'}</span>
+                      )}
                     </div>
-                    <span className="font-medium text-amber-900">
-                      {product.name}
-                    </span>
+                    <div>
+                      <span className="font-medium text-amber-900 block">
+                        {product.name}
+                      </span>
+                      <span className="text-xs text-amber-600">
+                        {product.images && product.images.length > 0 
+                          ? `${product.images.length} image${product.images.length > 1 ? 's' : ''}`
+                          : 'No images'}
+                      </span>
+                    </div>
                   </div>
                 </td>
-                <td className="py-4 px-4 text-amber-700 font-medium">₱{Math.round(product.price)}</td>
+                <td className="py-4 px-4 text-amber-700 font-medium">
+                  {product.category || 'Uncategorized'}
+                </td>
+                <td className="py-4 px-4 text-amber-700 font-medium">
+                  ₱{Math.round(product.price)}
+                  {product.sale_price && (
+                    <span className="block text-xs text-green-600">
+                      Sale: ₱{Math.round(product.sale_price)}
+                    </span>
+                  )}
+                </td>
                 <td className="py-4 px-4 text-amber-700 font-medium">
                   {product.stock}
                 </td>

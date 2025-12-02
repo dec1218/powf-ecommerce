@@ -1,6 +1,6 @@
 // App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import Loadingscreen from './components/LoadingScreen'
+import Loadingscreen from './components/Loadingscreen'
 import Homepage from './components/Homepage'
 import AdminDashboard from './components/admin/AdminDashboard'
 import CartPage from './components/CartPage'
@@ -11,10 +11,11 @@ import Hero from './components/Hero'
 import Login from './components/Login'
 import OrderHistoryPage from './components/OrderHistoryPage'
 import ProductDetailsPage from './components/ProductDetailsPage'
-import Products from './components/Products'
+import Products from './components/AdminProducts'
 import ProfilePage from './components/ProfilePage'
 import Signup from './components/Signup'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { ProductProvider } from './context/ProductContext'
 import Receipt from './components/Receipt'
 
 // Protected Route - For pages that require authentication
@@ -66,82 +67,84 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <Routes>
-          <Route path="/" element={<Loadingscreen />} />
-          <Route path="/home" element={<Homepage />} />
-          
-          {/* Guest Routes - Only accessible when NOT logged in */}
-          <Route
-            path="/login"
-            element={
-              <GuestRoute>
-                <Login />
-              </GuestRoute>
-            }
-          />
-          <Route
-            path="/signup"
-            element={
-              <GuestRoute>
-                <Signup />
-              </GuestRoute>
-            }
-          />
-          
-          {/* Admin Routes - Protected, requires admin role */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute requireRole="admin">
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          
-          
-          {/* Protected User Routes */}
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <ProfilePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/order-history"
-            element={
-              <ProtectedRoute>
-                <OrderHistoryPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/checkout"
-            element={
-              <ProtectedRoute>
-                <CheckoutPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/receipt"
-            element={
-              <ProtectedRoute>
-                <Receipt />
-              </ProtectedRoute>
-            }
-          />
-          
-          {/* Public Routes - Accessible to everyone */}
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/categories" element={<Categories />} />
-          <Route path="/category/:id" element={<CategoryPage />} />
-          <Route path="/hero" element={<Hero />} />
-          <Route path="/loading" element={<Loadingscreen />} />
-          <Route path="/product/:id" element={<ProductDetailsPage />} />
-          <Route path="/products" element={<Products />} />
-        </Routes>
+        <ProductProvider>
+          <Routes>
+            <Route path="/" element={<Loadingscreen />} />
+            <Route path="/home" element={<Homepage />} />
+            
+            {/* Guest Routes - Only accessible when NOT logged in */}
+            <Route
+              path="/login"
+              element={
+                <GuestRoute>
+                  <Login />
+                </GuestRoute>
+              }
+            />
+            <Route
+              path="/signup"
+              element={
+                <GuestRoute>
+                  <Signup />
+                </GuestRoute>
+              }
+            />
+            
+            {/* Admin Routes - Protected, requires admin role */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute requireRole="admin">
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            
+            
+            {/* Protected User Routes */}
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/order-history"
+              element={
+                <ProtectedRoute>
+                  <OrderHistoryPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/checkout"
+              element={
+                <ProtectedRoute>
+                  <CheckoutPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/receipt"
+              element={
+                <ProtectedRoute>
+                  <Receipt />
+                </ProtectedRoute>
+              }
+            />
+            
+            {/* Public Routes - Accessible to everyone */}
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/categories" element={<Categories />} />
+            <Route path="/category/:id" element={<CategoryPage />} />
+            <Route path="/hero" element={<Hero />} />
+            {/* ❌ REMOVED DUPLICATE: <Route path="/" element={<Loadingscreen />} /> */}
+            <Route path="/product/:id" element={<ProductDetailsPage />} />
+            <Route path="/products" element={<Products />} />
+          </Routes>
+        </ProductProvider>
       </AuthProvider>
     </Router>
   )

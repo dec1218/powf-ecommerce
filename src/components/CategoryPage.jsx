@@ -1,65 +1,29 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import Header from './Header'
+import { useProducts } from '../context/ProductContext'
 
-const CategoryPage = ({ categoryName, onBackToHome, onShowLogin, onProductClick }) => {
-  const [searchQuery, setSearchQuery] = useState('')
+const CategoryPage = ({ onShowLogin, onProductClick }) => {
+  const { id: categoryName } = useParams()
+  const navigate = useNavigate()
+  const { getProductsByCategory } = useProducts()
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const handleSearch = (e) => {
-    e.preventDefault()
-    console.log('Searching for:', searchQuery)
-  }
-
-  // Sample products for the category
-  const products = [
-    {
-      id: 1,
-      name: 'Premium Dog Food',
-      price: '₱299',
-      image: '🐕',
-      rating: 4.8,
-      description: 'High-quality nutrition for your pet'
-    },
-    {
-      id: 2,
-      name: 'Grain-Free Cat Food',
-      price: '₱249',
-      image: '🐱',
-      rating: 4.6,
-      description: 'Natural ingredients for healthy cats'
-    },
-    {
-      id: 3,
-      name: 'Puppy Formula',
-      price: '₱199',
-      image: '🐶',
-      rating: 4.9,
-      description: 'Specially formulated for growing puppies'
-    },
-    {
-      id: 4,
-      name: 'Senior Dog Food',
-      price: '₱349',
-      image: '🐕‍🦺',
-      rating: 4.7,
-      description: 'Gentle nutrition for older dogs'
-    },
-    {
-      id: 5,
-      name: 'Wet Cat Food',
-      price: '₱149',
-      image: '🥫',
-      rating: 4.5,
-      description: 'Delicious wet food variety pack'
-    },
-    {
-      id: 6,
-      name: 'Organic Treats',
-      price: '₱129',
-      image: '🦴',
-      rating: 4.8,
-      description: 'Natural treats for training'
+  useEffect(() => {
+    const fetchCategoryProducts = async () => {
+      setLoading(true)
+      const categoryProducts = await getProductsByCategory(categoryName)
+      setProducts(categoryProducts)
+      setLoading(false)
     }
-  ]
+
+    fetchCategoryProducts()
+  }, [categoryName])
+
+  const handleBackToHome = () => {
+    navigate('/home')
+  }
 
   return (
     <div className="min-h-screen bg-amber-50">
@@ -69,7 +33,7 @@ const CategoryPage = ({ categoryName, onBackToHome, onShowLogin, onProductClick 
         <div className="max-w-7xl mx-auto">
           {/* Back Button */}
           <button
-            onClick={onBackToHome}
+            onClick={handleBackToHome}
             className="flex items-center text-amber-700 hover:text-amber-900 mb-6 transition-colors duration-200"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,70 +47,109 @@ const CategoryPage = ({ categoryName, onBackToHome, onShowLogin, onProductClick 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-amber-900 uppercase">
               {categoryName}
             </h1>
+            {!loading && (
+              <p className="text-amber-600 mt-2">
+                {products.length} product{products.length !== 1 ? 's' : ''} available
+              </p>
+            )}
           </div>
 
-          {/* Products Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {products.map((product) => (
-              <div
-                key={product.id}
-                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200 group"
-              >
-                {/* Product Image Placeholder */}
-                <div className="aspect-square bg-gray-200 flex items-center justify-center p-8">
-                  <div className="text-6xl">{product.image}</div>
+          {/* Loading State */}
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-800 mx-auto"></div>
+              <p className="text-amber-600 mt-4">Loading products...</p>
+            </div>
+          ) : (
+            <>
+              {/* Products Grid */}
+              {products.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">📦</div>
+                  <h3 className="text-xl font-bold text-amber-900 mb-2">No Products Yet</h3>
+                  <p className="text-amber-600">Products in this category will appear here.</p>
                 </div>
-                
-                {/* Product Details */}
-                <div className="p-6">
-                  <h3 className="font-semibold text-amber-900 mb-2 group-hover:text-amber-700 transition-colors text-lg">
-                    {product.name}
-                  </h3>
-                  
-                  <p className="text-amber-600 text-sm mb-3">
-                    {product.description}
-                  </p>
-                  
-                  <div className="flex items-center mb-4">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <svg
-                          key={i}
-                          className={`w-4 h-4 ${
-                            i < Math.floor(product.rating)
-                              ? 'text-yellow-400'
-                              : 'text-gray-300'
-                          }`}
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
-                    </div>
-                    <span className="text-sm text-amber-600 ml-2">({product.rating})</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-amber-900">{product.price}</span>
-                    <button 
-                      onClick={() => onProductClick && onProductClick(product)}
-                      className="bg-amber-800 text-white px-6 py-3 rounded-lg hover:bg-amber-900 transition-colors duration-200 font-medium"
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                  {products.map((product) => (
+                    <div
+                      key={product.id}
+                      className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200 group"
                     >
-                      Add to Cart
-                    </button>
-                  </div>
+                      {/* Product Image */}
+                      <div className="aspect-square bg-gray-200 flex items-center justify-center p-8 overflow-hidden">
+                        {product.images && product.images.length > 0 ? (
+                          <img
+                            src={product.images[0]}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="text-6xl">🎁</div>
+                        )}
+                      </div>
+                      
+                      {/* Product Details */}
+                      <div className="p-6">
+                        <h3 className="font-semibold text-amber-900 mb-2 group-hover:text-amber-700 transition-colors text-lg">
+                          {product.name}
+                        </h3>
+                        
+                        <p className="text-amber-600 text-sm mb-3 line-clamp-2">
+                          {product.description}
+                        </p>
+                        
+                        <div className="flex items-center mb-4">
+                          <div className="flex items-center">
+                            {[...Array(5)].map((_, i) => (
+                              <svg
+                                key={i}
+                                className={`w-4 h-4 ${
+                                  i < Math.floor(product.rating || 0)
+                                    ? 'text-yellow-400'
+                                    : 'text-gray-300'
+                                }`}
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                            ))}
+                          </div>
+                          <span className="text-sm text-amber-600 ml-2">({product.rating || 0})</span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div>
+                            {product.sale_price ? (
+                              <>
+                                <span className="text-2xl font-bold text-amber-900">₱{Math.round(product.sale_price)}</span>
+                                <span className="text-sm text-gray-500 line-through ml-2">₱{Math.round(product.price)}</span>
+                              </>
+                            ) : (
+                              <span className="text-2xl font-bold text-amber-900">₱{Math.round(product.price)}</span>
+                            )}
+                          </div>
+                          <button 
+                            onClick={() => {
+                              if (onProductClick) {
+                                onProductClick(product)
+                              } else {
+                                navigate(`/product/${product.id}`)
+                              }
+                            }}
+                            className="bg-amber-800 text-white px-6 py-3 rounded-lg hover:bg-amber-900 transition-colors duration-200 font-medium"
+                          >
+                            Add to Cart
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Load More Button */}
-          <div className="text-center mt-12">
-            <button className="bg-amber-200 text-amber-900 font-semibold py-3 px-8 rounded-lg hover:bg-amber-300 transition-colors duration-200">
-              Load More Products
-            </button>
-          </div>
+              )}
+            </>
+          )}
         </div>
       </main>
     </div>

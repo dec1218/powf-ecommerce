@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useProducts } from '../../context/ProductContext'
 import AdminHeader from './AdminHeader'
 import StatsCards from './StatsCards'
 import ProductManagement from './ProductManagement'
@@ -11,31 +12,11 @@ import AddProductModal from './AddProductModal'
 const AdminDashboard = () => {
   const navigate = useNavigate()
   const { logout, user } = useAuth()
+  const { getAllProducts, addProduct, deleteProduct } = useProducts()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: 'Purina Supercoat Adult',
-      image: '🐕',
-      price: 300.0,
-      stock: 50,
-    },
-    {
-      id: 2,
-      name: 'Leather Dog Collar',
-      image: '🦴',
-      price: 700.0,
-      stock: 50,
-    },
-    {
-      id: 3,
-      name: 'Premium Dog Food',
-      image: '🍖',
-      price: 450.0,
-      stock: 30,
-    },
-  ])
+
+  // Get products from context
+  const products = getAllProducts()
 
   const [orders] = useState([
     {
@@ -88,20 +69,23 @@ const AdminDashboard = () => {
     },
   ])
 
+  // Calculate stats dynamically
   const stats = {
-    totalProducts: 100,
-    totalOrders: 70,
-    pending: 20,
-    completed: 50,
+    totalProducts: products.length,
+    totalOrders: orders.length,
+    pending: orders.filter(o => o.status === 'Pending').length,
+    completed: orders.filter(o => o.status === 'Delivered').length,
   }
 
   const handleEditProduct = (productId) => {
     console.log('Edit product:', productId)
+    alert('Edit functionality - coming soon!')
   }
 
   const handleDeleteProduct = (productId) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
-      setProducts(products.filter(p => p.id !== productId))
+      deleteProduct(productId)
+      alert('Product deleted successfully!')
     }
   }
 
@@ -110,18 +94,14 @@ const AdminDashboard = () => {
   }
 
   const handleSaveProduct = (formData) => {
-    // Create new product with unique ID
-    const newProduct = {
-      id: products.length + 1,
-      name: formData.productName,
-      image: '🎁', // You can add logic to handle the actual image
-      price: parseFloat(formData.price),
-      stock: parseInt(formData.stock) || 0,
+    try {
+      addProduct(formData)
+      setIsModalOpen(false)
+      alert('Product added successfully! ✅')
+    } catch (error) {
+      console.error('Error saving product:', error)
+      alert('Failed to add product')
     }
-    
-    setProducts([...products, newProduct])
-    setIsModalOpen(false)
-    alert('Product added successfully!')
   }
 
   const handleLogout = async () => {

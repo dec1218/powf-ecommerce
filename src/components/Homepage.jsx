@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Header from './Header'
 import Hero from './Hero'
 import Categories from './Categories'
-import Products from './Products'
+import Products from './AdminProducts'
 
 const Homepage = () => {
   const navigate = useNavigate()

@@ -1,38 +1,8 @@
-const Products = ({ onProductClick }) => {
-  const products = [
-    {
-      id: 1,
-      name: 'Purina Pro Plan',
-      description: 'Pro Plan Adult Sensitive Skin and Stomach Medium and Large Breed Dry Dog Food 3kg',
-      price: '₱2,997',
-      image: '🐕',
-      rating: 5
-    },
-    {
-      id: 2,
-      name: 'Interactive Toy Set',
-      description: 'Engaging toys to keep your pet active and happy',
-      price: '₱199',
-      image: '🎾',
-      rating: 4.6
-    },
-    {
-      id: 3,
-      name: 'Grooming Kit',
-      description: 'Complete grooming set for maintaining your pet\'s hygiene',
-      price: '₱349',
-      image: '✂️',
-      rating: 4.9
-    },
-    {
-      id: 4,
-      name: 'Comfort Collar',
-      description: 'Soft and adjustable collar for your pet\'s comfort',
-      price: '₱249',
-      image: '🦴',
-      rating: 4.7
-    }
-  ]
+import { useProducts } from '../context/ProductContext'
+
+const AdminProducts = ({ onProductClick }) => {
+  const { getActiveProducts } = useProducts()
+  const products = getActiveProducts().slice(0, 4) // Show top 4 products
 
   return (
     <section className="px-4 sm:px-6 lg:px-8 py-8 bg-amber-50">
@@ -51,8 +21,16 @@ const Products = ({ onProductClick }) => {
                 onClick={() => onProductClick && onProductClick(product)}
                 className="w-full text-left"
               >
-                <div className="aspect-square bg-amber-100 flex items-center justify-center p-8">
-                  <div className="text-6xl">{product.image}</div>
+                <div className="aspect-square bg-amber-100 flex items-center justify-center p-8 overflow-hidden">
+                  {product.images && product.images.length > 0 ? (
+                    <img
+                      src={product.images[0]}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-6xl">{product.image || '🎁'}</div>
+                  )}
                 </div>
               </button>
               
@@ -87,7 +65,16 @@ const Products = ({ onProductClick }) => {
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-xl font-bold text-amber-900">{product.price}</span>
+                  <div>
+                    {product.sale_price ? (
+                      <>
+                        <span className="text-xl font-bold text-amber-900">₱{Math.round(product.sale_price)}</span>
+                        <span className="text-sm text-gray-500 line-through ml-2">₱{Math.round(product.price)}</span>
+                      </>
+                    ) : (
+                      <span className="text-xl font-bold text-amber-900">₱{Math.round(product.price)}</span>
+                    )}
+                  </div>
                   <button 
                     onClick={() => onProductClick && onProductClick(product)}
                     className="bg-amber-800 text-white px-4 py-2 rounded-lg hover:bg-amber-900 transition-colors duration-200 text-sm font-medium"
@@ -104,4 +91,4 @@ const Products = ({ onProductClick }) => {
   )
 }
 
-export default Products
+export default AdminProducts
