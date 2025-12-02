@@ -1,18 +1,24 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { uploadAvatar, deleteAvatar } from '../lib/uploadHelpers'
 import Header from './Header'
 
 const ProfilePage = () => {
   const navigate = useNavigate()
-  const { logout, user } = useAuth()
+  const { logout, user, updateProfile, refreshUser } = useAuth()
+  const fileInputRef = useRef(null)
   const [activeSection, setActiveSection] = useState('profile')
+  const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [avatarPreview, setAvatarPreview] = useState(null)
   
   const [profileData, setProfileData] = useState({
     username: user?.username || '',
-    name: user?.full_name || '',
+    full_name: user?.full_name || '',
     email: user?.email || '',
-    phone: user?.phone || ''
+    phone: user?.phone || '',
+    avatar_url: user?.avatar_url || null
   })
 
   const handleInputChange = (field, value) => {
@@ -22,9 +28,135 @@ const ProfilePage = () => {
     }))
   }
 
-  const handleSave = () => {
-    console.log('Saving profile:', profileData)
-    // Here you would typically save to backend
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+    if (!validTypes.includes(file.type)) {
+      alert('Please upload a valid image (JPG, PNG, GIF, or WebP)')
+      return
+    }
+
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    if (file.size > maxSize) {
+      alert('File size too large. Maximum size is 5MB.')
+      return
+    }
+
+    try {
+      setUploading(true)
+
+      // Create preview
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result)
+      }
+      reader.readAsDataURL(file)
+
+      // Delete old avatar if exists
+      if (profileData.avatar_url) {
+        await deleteAvatar(profileData.avatar_url)
+      }
+
+      // Upload new avatar
+      const avatarUrl = await uploadAvatar(file, user.id)
+
+      // Update profile in database
+      await updateProfile({ avatar_url: avatarUrl })
+
+      // Update local state
+      setProfileData(prev => ({
+        ...prev,
+        avatar_url: avatarUrl
+      }))
+
+      // Refresh user data
+      await refreshUser()
+
+      alert('✅ Avatar updated successfully!')
+    } catch (error) {
+      console.error('❌ Error uploading avatar:', error)
+      alert('Failed to upload avatar: ' + error.message)
+      setAvatarPreview(null)
+    } finally {
+      setUploading(false)
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleRemoveAvatar = async () => {
+    if (!profileData.avatar_url) return
+
+    if (!window.confirm('Remove your profile picture?')) return
+
+    try {
+      setUploading(true)
+
+      // Delete from storage
+      await deleteAvatar(profileData.avatar_url)
+
+      // Update database
+      await updateProfile({ avatar_url: null })
+
+      // Update local state
+      setProfileData(prev => ({
+        ...prev,
+        avatar_url: null
+      }))
+      setAvatarPreview(null)
+
+      // Refresh user data
+      await refreshUser()
+
+      alert('✅ Avatar removed successfully!')
+    } catch (error) {
+      console.error('❌ Error removing avatar:', error)
+      alert('Failed to remove avatar: ' + error.message)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleSave = async () => {
+    try {
+      setSaving(true)
+
+      // Validate
+      if (!profileData.full_name?.trim()) {
+        alert('Please enter your full name')
+        return
+      }
+
+      // Prepare updates (exclude email and avatar_url as they're handled separately)
+      const updates = {
+        username: profileData.username?.trim() || null,
+        full_name: profileData.full_name?.trim(),
+        phone: profileData.phone?.trim() || null
+      }
+
+      console.log('💾 Saving profile:', updates)
+
+      await updateProfile(updates)
+
+      // Refresh user data
+      await refreshUser()
+
+      alert('✅ Profile updated successfully!')
+    } catch (error) {
+      console.error('❌ Error saving profile:', error)
+      alert('Failed to update profile: ' + error.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleLogout = async () => {
@@ -80,11 +212,12 @@ const ProfilePage = () => {
     }
   }
 
+  const currentAvatar = avatarPreview || profileData.avatar_url
+
   return (
     <div className="min-h-screen bg-amber-50">
       <Header />
       
-      {/* Main Content */}
       <main className="px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -92,15 +225,67 @@ const ProfilePage = () => {
             <div className="lg:col-span-1">
               <div className="bg-amber-100 rounded-xl p-6">
                 {/* User Profile */}
-                <div className="flex items-center space-x-4 mb-8">
-                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
-                    <span className="text-2xl font-bold text-amber-600">
-                      {user?.email?.charAt(0).toUpperCase() || 'U'}
-                    </span>
+                <div className="flex flex-col items-center mb-8">
+                  {/* Avatar */}
+                  <div className="relative group mb-4">
+                    <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center overflow-hidden border-4 border-amber-200 shadow-lg">
+                      {currentAvatar ? (
+                        <img
+                          src={currentAvatar}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-4xl font-bold text-amber-600">
+                          {user?.email?.charAt(0).toUpperCase() || 'U'}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Upload overlay */}
+                    {!uploading && (
+                      <button
+                        onClick={handleAvatarClick}
+                        className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                      >
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </button>
+                    )}
+
+                    {/* Loading spinner */}
+                    {uploading && (
+                      <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                      </div>
+                    )}
+
+                    {/* Hidden file input */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                      onChange={handleAvatarChange}
+                      className="hidden"
+                    />
                   </div>
-                  <div>
+
+                  {/* Remove Avatar Button */}
+                  {currentAvatar && !uploading && (
+                    <button
+                      onClick={handleRemoveAvatar}
+                      className="text-xs text-red-600 hover:text-red-800 mb-2"
+                    >
+                      Remove Photo
+                    </button>
+                  )}
+
+                  {/* User Info */}
+                  <div className="text-center">
                     <h3 className="font-bold text-amber-900 text-lg">
-                      {user?.full_name || user?.email?.split('@')[0] || 'User'}
+                      {user?.full_name || user?.username || user?.email?.split('@')[0] || 'User'}
                     </h3>
                     <p className="text-xs text-amber-600">{user?.role || 'user'}</p>
                   </div>
@@ -124,7 +309,6 @@ const ProfilePage = () => {
                         <span className="font-medium">{item.label}</span>
                       </button>
                       
-                      {/* Sub-items for My Account */}
                       {item.id === 'profile' && item.subItems && activeSection === 'profile' && (
                         <div className="ml-8 mt-2 space-y-1">
                           {item.subItems.map((subItem) => (
@@ -150,7 +334,7 @@ const ProfilePage = () => {
                   My Profile
                 </h2>
 
-                <form className="space-y-6">
+                <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
                   {/* Username */}
                   <div>
                     <label className="block text-amber-900 font-medium mb-2">
@@ -160,26 +344,29 @@ const ProfilePage = () => {
                       type="text"
                       value={profileData.username}
                       onChange={(e) => handleInputChange('username', e.target.value)}
-                      className="w-full px-4 py-3 rounded-lg border-2 border-amber-200 bg-white text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
+                      disabled={saving}
+                      className="w-full px-4 py-3 rounded-lg border-2 border-amber-200 bg-white text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 disabled:opacity-50"
                       placeholder="Enter your username"
                     />
                   </div>
 
-                  {/* Name */}
+                  {/* Full Name */}
                   <div>
                     <label className="block text-amber-900 font-medium mb-2">
-                      Full Name:
+                      Full Name: <span className="text-red-600">*</span>
                     </label>
                     <input
                       type="text"
-                      value={profileData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      className="w-full px-4 py-3 rounded-lg border-2 border-amber-200 bg-white text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
+                      value={profileData.full_name}
+                      onChange={(e) => handleInputChange('full_name', e.target.value)}
+                      disabled={saving}
+                      className="w-full px-4 py-3 rounded-lg border-2 border-amber-200 bg-white text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 disabled:opacity-50"
                       placeholder="Enter your full name"
+                      required
                     />
                   </div>
 
-                  {/* Email */}
+                  {/* Email (Read-only) */}
                   <div>
                     <label className="block text-amber-900 font-medium mb-2">
                       Email:
@@ -187,9 +374,8 @@ const ProfilePage = () => {
                     <input
                       type="email"
                       value={profileData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="w-full px-4 py-3 rounded-lg border-2 border-amber-200 bg-white text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
                       disabled
+                      className="w-full px-4 py-3 rounded-lg border-2 border-amber-200 bg-gray-100 text-amber-700 cursor-not-allowed transition-all duration-200"
                     />
                     <p className="text-xs text-amber-600 mt-1">Email cannot be changed</p>
                   </div>
@@ -203,7 +389,8 @@ const ProfilePage = () => {
                       type="tel"
                       value={profileData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
-                      className="w-full px-4 py-3 rounded-lg border-2 border-amber-200 bg-white text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
+                      disabled={saving}
+                      className="w-full px-4 py-3 rounded-lg border-2 border-amber-200 bg-white text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 disabled:opacity-50"
                       placeholder="Enter your phone number"
                     />
                   </div>
@@ -213,9 +400,10 @@ const ProfilePage = () => {
                     <button
                       type="button"
                       onClick={handleSave}
-                      className="bg-amber-800 text-white font-bold py-3 px-8 rounded-lg hover:bg-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105"
+                      disabled={saving || uploading}
+                      className="bg-amber-800 text-white font-bold py-3 px-8 rounded-lg hover:bg-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105"
                     >
-                      Save Changes
+                      {saving ? 'Saving...' : 'Save Changes'}
                     </button>
                   </div>
                 </form>

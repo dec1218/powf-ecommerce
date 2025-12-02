@@ -16,13 +16,12 @@ export function AuthProvider({ children }) {
       
       const { data: profile, error } = await supabase
         .from('users')
-        .select('id, email, role, full_name, username, phone')
+        .select('id, email, role, full_name, username, phone, avatar_url')
         .eq('id', userId)
         .maybeSingle()
 
       if (error) {
         console.error('❌ Profile fetch error:', error.code, error.message)
-        // Don't throw - just return null
         return null
       }
 
@@ -35,7 +34,6 @@ export function AuthProvider({ children }) {
       return profile
     } catch (error) {
       console.error('❌ Exception in getUserProfile:', error)
-      // Don't throw - just return null
       return null
     }
   }
@@ -57,7 +55,6 @@ export function AuthProvider({ children }) {
         
         if (error) {
           console.error('❌ Session error:', error)
-          // Only clear state if we're sure there's no session
           if (mounted && !session) {
             setUser(null)
             setToken(null)
@@ -65,14 +62,11 @@ export function AuthProvider({ children }) {
         } else if (session?.user) {
           console.log('✅ Session found for:', session.user.email)
           
-          // Try to get profile from database
           const profile = await getUserProfile(session.user.id)
           
-          // Create user object with fallback role detection
           const fullUser = profile || {
             id: session.user.id,
             email: session.user.email,
-            // 🔥 Check if admin by email if profile fetch fails
             role: isAdminEmail(session.user.email) ? 'admin' : 'user'
           }
           
@@ -90,7 +84,6 @@ export function AuthProvider({ children }) {
         }
       } catch (error) {
         console.error('❌ Error in getInitialSession:', error)
-        // DON'T clear user state on error - keep existing session
       } finally {
         if (mounted) {
           setAuthChecked(true)
@@ -102,15 +95,12 @@ export function AuthProvider({ children }) {
 
     getInitialSession()
 
-    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        // Ignore initial events during setup
         if (!isInitialized) return
         
         console.log('🔄 Auth state changed:', event)
         
-        // Only clear state on explicit sign out
         if (event === 'SIGNED_OUT') {
           setUser(null)
           setToken(null)
@@ -119,7 +109,6 @@ export function AuthProvider({ children }) {
           return
         }
         
-        // Only update state on actual auth events
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
           if (session?.user) {
             const profile = await getUserProfile(session.user.id)
@@ -168,13 +157,10 @@ export function AuthProvider({ children }) {
 
       console.log('✅ Auth login successful for user:', data.user.id)
       
-      // Wait for auth to propagate
       await new Promise(resolve => setTimeout(resolve, 300))
       
-      // Try to get profile
       const profile = await getUserProfile(data.user.id)
       
-      // Create user with fallback role detection
       const fullUser = profile || {
         id: data.user.id,
         email: data.user.email,
@@ -218,7 +204,6 @@ export function AuthProvider({ children }) {
       
       console.log('✅ Auth user created:', data.user.id)
       
-      // Sign out to prevent auto-login
       await supabase.auth.signOut()
       setUser(null)
       setToken(null)
@@ -239,29 +224,60 @@ export function AuthProvider({ children }) {
       console.log('👋 EXPLICIT LOGOUT called...')
       setLoading(true)
       
-      // Clear state FIRST for instant UI feedback
       setUser(null)
       setToken(null)
       
-      // Then call Supabase signOut (this will trigger SIGNED_OUT event)
       const { error } = await supabase.auth.signOut()
       if (error) {
         console.error('⚠️ Logout error:', error)
-        // Still consider it logged out even if Supabase errors
       } else {
         console.log('✅ User signed out successfully from Supabase')
       }
     } catch (error) {
       console.error('❌ Error signing out:', error)
-      // Force logout anyway
       setUser(null)
       setToken(null)
     } finally {
-      // Ensure state is cleared no matter what
       setUser(null)
       setToken(null)
       setLoading(false)
       console.log('✅ Logout complete')
+    }
+  }
+
+  // Update user profile
+  const updateProfile = async (updates) => {
+    try {
+      if (!user) throw new Error('No user logged in')
+
+      console.log('📝 Updating profile:', updates)
+
+      const { data, error } = await supabase
+        .from('users')
+        .update(updates)
+        .eq('id', user.id)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      // Update local state
+      setUser(prev => ({ ...prev, ...data }))
+      console.log('✅ Profile updated successfully')
+      
+      return data
+    } catch (error) {
+      console.error('❌ Error updating profile:', error)
+      throw error
+    }
+  }
+
+  // Refresh user data
+  const refreshUser = async () => {
+    if (!user) return
+    const profile = await getUserProfile(user.id)
+    if (profile) {
+      setUser(profile)
     }
   }
 
@@ -274,7 +290,9 @@ export function AuthProvider({ children }) {
     role: user?.role || 'user',
     login,
     signup,
-    logout
+    logout,
+    updateProfile,
+    refreshUser
   }), [user, token, loading, authChecked])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
