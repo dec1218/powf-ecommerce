@@ -1,11 +1,12 @@
 import { useState } from 'react'
 
-const AddNewProduct = ({ onBackToDashboard, onSave }) => {
+const AddProductModal = ({ isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState({
     productName: '',
     category: '',
     price: '',
     price2: '',
+    stock: '',
     description: '',
     images: []
   })
@@ -21,36 +22,80 @@ const AddNewProduct = ({ onBackToDashboard, onSave }) => {
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files)
-    // Handle image upload logic
     setFormData(prev => ({
       ...prev,
       images: files.slice(0, 3)
     }))
   }
 
-  const handleSave = () => {
+  const handleSubmit = () => {
     if (!formData.productName || !formData.category || !formData.price || !formData.description) {
       alert('Please fill in all required fields')
       return
     }
     
-    if (onSave) {
-      onSave(formData)
-    }
-    console.log('Saving product:', formData)
-    // Handle save logic
+    onSave(formData)
+    // Reset form
+    setFormData({
+      productName: '',
+      category: '',
+      price: '',
+      price2: '',
+      stock: '',
+      description: '',
+      images: []
+    })
   }
 
+  const handleClose = () => {
+    // Reset form
+    setFormData({
+      productName: '',
+      category: '',
+      price: '',
+      price2: '',
+      stock: '',
+      description: '',
+      images: []
+    })
+    onClose()
+  }
+
+  if (!isOpen) return null
+
   return (
-    <div className="min-h-screen bg-amber-50">
-      <main className="px-4 sm:px-6 lg:px-8 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        onClick={handleClose}
+      />
+      
+      {/* Modal */}
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          {/* Header */}
+          <div className="sticky top-0 bg-white border-b border-amber-200 px-6 py-4 flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-amber-900">
+              Add New Product
+            </h2>
+            <button
+              onClick={handleClose}
+              className="text-amber-600 hover:text-amber-900 transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Body */}
+          <div className="px-6 py-6">
             <form className="space-y-6">
               {/* Product Name */}
               <div>
                 <label className="block text-amber-900 font-medium mb-2">
-                  Product Name:
+                  Product Name: <span className="text-red-600">*</span>
                 </label>
                 <input
                   type="text"
@@ -64,7 +109,7 @@ const AddNewProduct = ({ onBackToDashboard, onSave }) => {
               {/* Category */}
               <div>
                 <label className="block text-amber-900 font-medium mb-2">
-                  Category:
+                  Category: <span className="text-red-600">*</span>
                 </label>
                 <select
                   value={formData.category}
@@ -81,10 +126,10 @@ const AddNewProduct = ({ onBackToDashboard, onSave }) => {
               </div>
 
               {/* Price Fields */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-amber-900 font-medium mb-2">
-                    Price:
+                    Price: <span className="text-red-600">*</span>
                   </label>
                   <input
                     type="number"
@@ -103,6 +148,19 @@ const AddNewProduct = ({ onBackToDashboard, onSave }) => {
                     type="number"
                     value={formData.price2}
                     onChange={(e) => handleInputChange('price2', e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg border-2 border-amber-200 bg-white text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
+                    placeholder="0"
+                    step="1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-amber-900 font-medium mb-2">
+                    Stock:
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.stock}
+                    onChange={(e) => handleInputChange('stock', e.target.value)}
                     className="w-full px-4 py-3 rounded-lg border-2 border-amber-200 bg-white text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
                     placeholder="0"
                     step="1"
@@ -152,40 +210,40 @@ const AddNewProduct = ({ onBackToDashboard, onSave }) => {
               {/* Description */}
               <div>
                 <label className="block text-amber-900 font-medium mb-2">
-                  Description:
+                  Description: <span className="text-red-600">*</span>
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => handleInputChange('description', e.target.value)}
-                  rows={6}
+                  rows={4}
                   className="w-full px-4 py-3 rounded-lg border-2 border-amber-200 bg-white text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 resize-none"
                   placeholder="Enter product description"
                 />
               </div>
-
-              {/* Action Buttons */}
-              <div className="flex justify-end space-x-4 pt-6">
-                <button
-                  type="button"
-                  onClick={onBackToDashboard}
-                  className="px-8 py-3 rounded-lg border-2 border-amber-300 text-amber-900 font-semibold hover:bg-amber-50 transition-colors duration-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  className="px-8 py-3 rounded-lg bg-amber-800 text-white font-semibold hover:bg-amber-900 transition-colors duration-200"
-                >
-                  Save
-                </button>
-              </div>
             </form>
           </div>
+
+          {/* Footer */}
+          <div className="sticky bottom-0 bg-white border-t border-amber-200 px-6 py-4 flex justify-end space-x-4">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="px-8 py-3 rounded-lg border-2 border-amber-300 text-amber-900 font-semibold hover:bg-amber-50 transition-colors duration-200"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className="px-8 py-3 rounded-lg bg-amber-800 text-white font-semibold hover:bg-amber-900 transition-colors duration-200"
+            >
+              Save Product
+            </button>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   )
 }
 
-export default AddNewProduct
+export default AddProductModal
