@@ -9,12 +9,15 @@ import ProductManagement from './ProductManagement'
 import OrderManagement from './OrderManagement'
 import PaymentManagement from './PaymentManagement'
 import AddProductModal from './AddProductModal'
+import EditProductModal from './EditProductModal'
 
 const AdminDashboard = () => {
   const navigate = useNavigate()
   const { logout, user } = useAuth()
-  const { getAllProducts, addProduct, deleteProduct } = useProducts()
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const { getAllProducts, addProduct, updateProduct, deleteProduct, getProductById } = useProducts()
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editingProduct, setEditingProduct] = useState(null)
   const [orders, setOrders] = useState([])
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
@@ -81,30 +84,54 @@ const AdminDashboard = () => {
     completed: orders.filter(o => o.status === 'delivered').length,
   }
 
+  // Handle Edit Product
   const handleEditProduct = (productId) => {
-    console.log('Edit product:', productId)
-    alert('Edit functionality - coming soon!')
-  }
-
-  const handleDeleteProduct = (productId) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      deleteProduct(productId)
-      alert('Product deleted successfully!')
+    const product = getProductById(productId)
+    if (product) {
+      console.log('✏️ Editing product:', product)
+      setEditingProduct(product)
+      setIsEditModalOpen(true)
+    } else {
+      alert('Product not found!')
     }
   }
 
-  const handleAddProduct = () => {
-    setIsModalOpen(true)
+  // Handle Delete Product
+  const handleDeleteProduct = (productId) => {
+    if (window.confirm('Are you sure you want to delete this product?')) {
+      deleteProduct(productId)
+      alert('Product deleted successfully! ✅')
+    }
   }
 
-  const handleSaveProduct = async (formData) => {
+  // Handle Add Product
+  const handleAddProduct = () => {
+    setIsAddModalOpen(true)
+  }
+
+  // Save New Product
+  const handleSaveNewProduct = async (formData) => {
     try {
       await addProduct(formData)
-      setIsModalOpen(false)
+      setIsAddModalOpen(false)
       alert('Product added successfully! ✅')
     } catch (error) {
       console.error('Error saving product:', error)
-      alert('Failed to add product')
+      alert('Failed to add product: ' + error.message)
+    }
+  }
+
+  // Save Edited Product
+  const handleSaveEditedProduct = async (productId, formData) => {
+    try {
+      console.log('💾 Updating product:', productId, formData)
+      await updateProduct(productId, formData)
+      setIsEditModalOpen(false)
+      setEditingProduct(null)
+      alert('Product updated successfully! ✅')
+    } catch (error) {
+      console.error('Error updating product:', error)
+      alert('Failed to update product: ' + error.message)
     }
   }
 
@@ -210,9 +237,20 @@ const AdminDashboard = () => {
 
       {/* Add Product Modal */}
       <AddProductModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveProduct}
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSave={handleSaveNewProduct}
+      />
+
+      {/* Edit Product Modal */}
+      <EditProductModal 
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setEditingProduct(null)
+        }}
+        onSave={handleSaveEditedProduct}
+        product={editingProduct}
       />
     </div>
   )

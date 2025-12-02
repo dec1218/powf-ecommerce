@@ -38,12 +38,12 @@ export function ProductProvider({ children }) {
     }
   }
 
-  // Add new product - FIXED VERSION ✅
+  // Add new product
   const addProduct = async (productData) => {
     try {
       console.log('📦 Adding product:', productData)
 
-      // 🔥 STEP 1: Get the category UUID from the category name
+      // Get the category UUID from the category name
       const { data: categoryData, error: categoryError } = await supabase
         .from('categories')
         .select('id, name')
@@ -61,14 +61,14 @@ export function ProductProvider({ children }) {
 
       console.log('✅ Category found:', categoryData)
 
-      // 🔥 STEP 2: Create product with proper data types
+      // Create product with proper data types
       const newProduct = {
         name: productData.productName,
         description: productData.description,
-        category_id: categoryData.id, // Use the UUID
-        price: parseFloat(productData.price), // Ensure it's a float
+        category_id: categoryData.id,
+        price: parseFloat(productData.price),
         sale_price: productData.price2 ? parseFloat(productData.price2) : null,
-        stock: parseInt(productData.stock, 10) || 0, // ⚠️ FIX: Parse as integer with base 10
+        stock: parseInt(productData.stock, 10) || 0,
         images: productData.images || [],
         rating: 0,
         is_active: true
@@ -97,9 +97,11 @@ export function ProductProvider({ children }) {
     }
   }
 
-  // Update product
+  // Update product - ENHANCED VERSION ✅
   const updateProduct = async (productId, productData) => {
     try {
+      console.log('📝 Updating product:', productId, productData)
+
       // Get category UUID
       const { data: categoryData, error: categoryError } = await supabase
         .from('categories')
@@ -109,24 +111,32 @@ export function ProductProvider({ children }) {
 
       if (categoryError) throw categoryError
 
+      // Prepare update data
+      const updateData = {
+        name: productData.productName,
+        description: productData.description,
+        category_id: categoryData.id,
+        price: parseFloat(productData.price),
+        sale_price: productData.price2 ? parseFloat(productData.price2) : null,
+        stock: parseInt(productData.stock, 10) || 0,
+        images: productData.images || [] // Include updated images
+      }
+
+      console.log('📤 Update data:', updateData)
+
       const { error } = await supabase
         .from('products')
-        .update({
-          name: productData.productName,
-          description: productData.description,
-          category_id: categoryData.id,
-          price: parseFloat(productData.price),
-          sale_price: productData.price2 ? parseFloat(productData.price2) : null,
-          stock: parseInt(productData.stock, 10) || 0 // ⚠️ FIX: Parse with base 10
-        })
+        .update(updateData)
         .eq('id', productId)
 
       if (error) throw error
 
-      // Refresh products
+      console.log('✅ Product updated successfully')
+
+      // Refresh products to get the latest data
       await fetchProducts()
     } catch (error) {
-      console.error('Error updating product:', error)
+      console.error('❌ Error updating product:', error)
       throw error
     }
   }
