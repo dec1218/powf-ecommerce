@@ -1,8 +1,8 @@
 // /api/create-payment-intent.js
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
-const { createClient } = require('@supabase/supabase-js')
+import Stripe from 'stripe'
+import { createClient } from '@supabase/supabase-js'
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true)
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -35,6 +35,8 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: 'Supabase credentials not configured' })
     }
 
+    // Initialize Stripe
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
     console.log('✅ Stripe initialized')
 
     // Initialize Supabase
