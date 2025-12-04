@@ -169,3 +169,28 @@ CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
 CREATE INDEX IF NOT EXISTS idx_cart_items_user ON cart_items(user_id);
+
+
+
+CREATE TABLE IF NOT EXISTS payment_transactions (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
+    transaction_id TEXT UNIQUE NOT NULL,
+    payment_method TEXT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    currency TEXT DEFAULT 'PHP',
+    status TEXT NOT NULL CHECK (status IN ('pending', 'succeeded', 'failed', 'refunded')),
+    stripe_payment_intent_id TEXT,
+    stripe_charge_id TEXT,
+    gateway_response JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+
+
+
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'PHP';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS subtotal DECIMAL(10,2);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_amount DECIMAL(10,2);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS stripe_payment_intent_id TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP WITH TIME ZONE;

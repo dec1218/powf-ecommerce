@@ -1,82 +1,103 @@
-import Stripe from "stripe";
+import Stripe from 'stripe'
+import { createClient } from '@supabase/supabase-js'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Initialize Stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+
+// Initialize Supabase
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.VITE_SUPABASE_ANON_KEY
+)
 
 export default async function handler(req, res) {
-  // CORS
-  res.setHeader("Access-Control-Allow-Credentials", true);
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS,PATCH,DELETE,POST,PUT");
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
-  );
-
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
 
   try {
-    const { paymentMethodId, amount, currency, customerInfo, bookingInfo } = req.body;
+    const { orderId } = req.body
 
-    if (!paymentMethodId) {
-      return res.status(400).json({ error: "Missing payment method. Please provide card details." });
+    // Validate orderId
+    if (!orderId) {
+      return res.status(400).json({ error: 'Order ID is required' })
     }
 
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ error: "Invalid amount. Amount must be greater than 0." });
+    console.log('🔍 Fetching order:', orderId)
+
+    // Fetch order from database
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', orderId)
+      .single()
+
+    if (orderError || !order) {
+      console.error('❌ Order not found:', orderError)
+      return res.status(404).json({ error: 'Order not found' })
     }
+
+    console.log('✅ Order found:', order.order_number)
+
+    // Check if payment intent already exists
+    if (order.stripe_payment_intent_id) {
+      console.log('♻️ Retrieving existing payment intent')
+      
+      const existingIntent = await stripe.paymentIntents.retrieve(
+        order.stripe_payment_intent_id
+      )
+
+      return res.status(200).json({
+        clientSecret: existingIntent.client_secret,
+        paymentIntentId: existingIntent.id
+      })
+    }
+
+    // Create new payment intent
+    const amountInCentavos = Math.round(order.total_amount * 100)
+
+    console.log('💳 Creating payment intent:', {
+      amount: amountInCentavos,
+      currency: order.currency || 'php'
+    })
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount),
-      currency: currency || "php",
-      payment_method: paymentMethodId,
-      confirm: true,
-      automatic_payment_methods: { enabled: true, allow_redirects: "never" },
+      amount: amountInCentavos,
+      currency: order.currency?.toLowerCase() || 'php',
       metadata: {
-        customerName: customerInfo?.name || "N/A",
-        customerEmail: customerInfo?.email || "N/A",
-        customerPhone: customerInfo?.phone || "N/A",
-        bookingId: String(bookingInfo?.id || "N/A"),
-        roomId: String(bookingInfo?.roomId || "N/A"),
-        roomNumber: bookingInfo?.roomNumber || "N/A",
-        rentalTerm: bookingInfo?.rentalTerm || "N/A",
-        tenantId: String(bookingInfo?.tenantId || "N/A")
+        orderId: order.id,
+        orderNumber: order.order_number,
+        userId: order.user_id
       },
-      description: `BoardEase Booking - ${bookingInfo?.roomNumber || "Room Rental"}`
-    });
+      automatic_payment_methods: {
+        enabled: true
+      }
+    })
 
-    if (paymentIntent.status === "succeeded") {
-      return res.status(200).json({
-        success: true,
-        paymentIntentId: paymentIntent.id,
-        requiresAction: false,
-        clientSecret: paymentIntent.client_secret,
-        status: "succeeded",
-        amount: paymentIntent.amount,
-        currency: paymentIntent.currency
-      });
+    console.log('✅ Payment intent created:', paymentIntent.id)
+
+    // Save payment intent ID to order
+    const { error: updateError } = await supabase
+      .from('orders')
+      .update({ stripe_payment_intent_id: paymentIntent.id })
+      .eq('id', orderId)
+
+    if (updateError) {
+      console.warn('⚠️ Failed to save payment intent ID:', updateError)
     }
 
-    if (paymentIntent.status === "requires_action") {
-      return res.status(200).json({
-        success: false,
-        paymentIntentId: paymentIntent.id,
-        requiresAction: true,
-        clientSecret: paymentIntent.client_secret,
-        status: "requires_action"
-      });
-    }
+    // Return client secret
+    return res.status(200).json({
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id
+    })
 
-    return res.status(400).json({
-      error: `Payment is ${paymentIntent.status}. Please try again.`
-    });
   } catch (error) {
-    console.error("❌ Stripe error:", error);
-
-    return res.status(500).json({
-      error: error.message || "An unexpected error occurred. Please try again."
-    });
+    console.error('❌ Payment intent error:', error)
+    return res.status(500).json({ 
+      error: 'Failed to create payment intent',
+      details: error.message 
+    })
   }
 }
-
-//redeploy

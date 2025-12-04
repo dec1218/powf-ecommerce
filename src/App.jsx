@@ -15,6 +15,8 @@ import Products from './components/AdminProducts'
 import ProfilePage from './components/ProfilePage'
 import Signup from './components/Signup'
 import Receipt from './components/Receipt'
+import PaymentPage from './components/PaymentPage'
+import PaymentSuccessPage from './components/PaymentSuccessPage'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ProductProvider } from './context/ProductContext'
 import { CartProvider } from './context/CartContext'
@@ -137,7 +139,24 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              
+              {/* Payment Routes - Add these */}
+              <Route
+                  path="/payment/:orderId"
+                  element={
+                    <ProtectedRoute>
+                      <PaymentPage />
+                    </ProtectedRoute>
+                  }
+                />
+              <Route
+                  path="/payment-success/:orderId"
+                  element={
+                    <ProtectedRoute>
+                      <PaymentSuccessPage />
+                    </ProtectedRoute>
+                  }
+                />
+                
               {/* Public Routes - Accessible to everyone */}
               <Route path="/cart" element={<CartPage />} />
               <Route path="/categories" element={<Categories />} />
