@@ -1,5 +1,5 @@
 // /api/create-payment-intent.js
-const Stripe = require('stripe')
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 const { createClient } = require('@supabase/supabase-js')
 
 module.exports = async (req, res) => {
@@ -35,8 +35,6 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: 'Supabase credentials not configured' })
     }
 
-    // Initialize Stripe
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
     console.log('✅ Stripe initialized')
 
     // Initialize Supabase
