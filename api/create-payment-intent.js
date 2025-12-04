@@ -68,22 +68,7 @@ export default async function handler(req, res) {
       console.error('⚠️ Failed to update order with payment intent:', updateError)
     }
 
-    // Create payment transaction record
-    const { error: txError } = await supabase
-      .from('payment_transactions')
-      .insert([{
-        order_id: orderId,
-        transaction_id: paymentIntent.id,
-        payment_method: 'stripe',
-        amount: order.total_amount,
-        currency: 'PHP',
-        status: 'pending',
-        stripe_payment_intent_id: paymentIntent.id,
-      }])
-
-    if (txError) {
-      console.error('⚠️ Failed to create payment transaction:', txError)
-    }
+    console.log('✅ Order updated with payment intent ID')
 
     // Return client secret to frontend
     return res.status(200).json({
